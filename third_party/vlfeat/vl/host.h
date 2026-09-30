@@ -313,8 +313,10 @@ defined(__DOXYGEN__)
 #if defined(VL_COMPILER_MSC) & ! defined(__DOXYGEN__)
 #  define VL_UNUSED
 #  define VL_INLINE static __inline
-#  define snprintf _snprintf
-#  define isnan _isnan
+#  if defined(_MSC_VER) && _MSC_VER < 1900
+#    define snprintf _snprintf
+#    define isnan _isnan
+#  endif
 #  if defined(VL_STATIC)
 #    ifdef __cplusplus
 #      define VL_EXPORT extern "C"
