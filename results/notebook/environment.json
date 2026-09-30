@@ -1,0 +1,70 @@
+{
+  "timestamp_utc": "2026-09-29T10:08:30.740651+00:00",
+  "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "cpu": "AMD EPYC 9V74 80-Core Processor",
+  "logical_cpus": 5,
+  "cpu_affinity_count": 5,
+  "uv": "uv 0.10.0",
+  "packages": {
+    "numpy": "2.3.5",
+    "pandas": "2.2.3",
+    "matplotlib": "3.10.8",
+    "nanobind": "2.15.0",
+    "scikit-build-core": "1.1.0",
+    "nbclient": "0.10.4",
+    "ipykernel": "7.2.0"
+  },
+  "capabilities": {
+    "version": "0.2.0",
+    "cxx_compiler": "GNU 14.2.0",
+    "configuration": "Release",
+    "nanobind": "2.15.0",
+    "cuda_compiled": false,
+    "cuda_available": false,
+    "lineae_compiled": false,
+    "gpu_scope": "sampling and compositing only"
+  },
+  "options": {
+    "method": "gesgsp",
+    "device": "cpu",
+    "structures": "edges",
+    "grid_size": 32,
+    "max_features": 2500,
+    "ratio_threshold": 0.78,
+    "ransac_threshold": 3.0,
+    "ransac_iterations": 1200,
+    "minimum_matches": 10,
+    "seed": 42,
+    "use_apap": true,
+    "apap_sigma": 80.0,
+    "alignment_weight": 1.0,
+    "local_similarity_weight": 0.75,
+    "global_beta": 6.0,
+    "global_gamma": 20.0,
+    "structure_weight": 3.0,
+    "tps_lambda": 0.001,
+    "max_tps_controls": 384,
+    "max_structures": 100,
+    "feather_width": 32.0,
+    "max_canvas_pixels": 32000000,
+    "lineae_model": "",
+    "lineae_variant": "",
+    "lineae_device": "cpu",
+    "lineae_threshold": 0.3
+  },
+  "native_extension_sha256": "a0a004fac11e4ee6aab53e3ebe2c136ee0a8409f9c8782009537508d10f80d78",
+  "repeats": 5,
+  "warmups": 1,
+  "order_seed": 314159,
+  "thread_environment": {
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1"
+  },
+  "notes": [
+    "共有された実行環境です。CPU固定・周波数固定は行っていません。",
+    "全処理と再利用処理は測定範囲が異なります。"
+  ],
+  "source_manifest_sha256": "4534559658f56bdd140a730a111c7152bbe45b72a62a0f7d166ae7b5e6712785"
+}

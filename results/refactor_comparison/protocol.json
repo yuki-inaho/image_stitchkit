@@ -1,0 +1,13 @@
+{
+  "method": "rew",
+  "case": "3-image synthetic chain",
+  "warmups": 1,
+  "repeats": 5,
+  "order_seed": 20260929,
+  "output_rgba_identical": true,
+  "notes": [
+    "registration_ms is native stage timing; CLI wall includes process startup and image I/O",
+    "same GCC 14.2 Release build and same external libraries",
+    "baseline feature extraction count not instrumented; do not present an invented observed count"
+  ]
+}

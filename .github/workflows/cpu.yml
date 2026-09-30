@@ -1,0 +1,44 @@
+name: CPU build and asset tests
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022, macos-14]
+    runs-on: ${{ matrix.os }}
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/.tools/vcpkg
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: microsoft/vcpkg
+          ref: 58845ed63eb19aff55e896ea1f5d51f2a0df5b66
+          path: .tools/vcpkg
+          fetch-depth: 0
+      - name: Bootstrap Unix
+        if: runner.os != 'Windows'
+        run: bash "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
+      - name: Bootstrap Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: '& "$env:VCPKG_ROOT/bootstrap-vcpkg.bat" -disableMetrics'
+      - name: Configure Unix
+        if: runner.os != 'Windows'
+        run: cmake --preset vcpkg
+      - name: Configure Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: cmake -S . -B build/vcpkg -G "Visual Studio 17 2022" -A x64 -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" -DBUILD_TESTING=ON
+      - run: cmake --build build/vcpkg --config Release --parallel 2
+      - run: ctest --test-dir build/vcpkg -C Release --output-on-failure --output-junit tests.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: results-${{ matrix.os }}
+          path: |
+            build/vcpkg/tests.xml
+            build/vcpkg/tests/outputs/

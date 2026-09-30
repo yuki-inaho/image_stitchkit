@@ -1,0 +1,48 @@
+{
+  "tests": {
+    "baseline": {
+      "total": 35,
+      "passed": 33,
+      "failed": 0,
+      "skipped": 2
+    },
+    "release": {
+      "total": 43,
+      "passed": 41,
+      "failed": 0,
+      "skipped": 2
+    },
+    "asan_ubsan": {
+      "total": 43,
+      "passed": 41,
+      "failed": 0,
+      "skipped": 2
+    },
+    "python": {
+      "total": 38,
+      "passed": 38,
+      "failed": 0,
+      "skipped": 0
+    },
+    "installed_wheel_python": {
+      "total": 38,
+      "passed": 38,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "notebook": {
+    "cells": 21,
+    "code_cells": 11,
+    "errors": 0,
+    "trials": 180,
+    "conditions": 36,
+    "actual_devices": [
+      "cpu"
+    ]
+  },
+  "source_hashes_verified": 31,
+  "extension_matches_final_wheel": true,
+  "wheel_sha256": "4c404ee3260a8afea9943a70e5115e2d9044f620df70ea4db5dbc4f59be30b19",
+  "installed_cpp_sdk_consumer": "passed"
+}

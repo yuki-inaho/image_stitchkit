@@ -1,0 +1,10 @@
+$ cmake --preset sanitize -DEigen3_INCLUDE_DIR=[PY_ENV]/lib/python3.13/site-packages/casadi/include/eigen3 -DCMAKE_C_COMPILER=[CLANG_PATH] -DCMAKE_CXX_COMPILER=[CLANG_PATH]++ -DCMAKE_CXX_FLAGS_DEBUG=-O1 -g1 -DCMAKE_C_FLAGS_DEBUG=-O1 -g1
+Preset CMake variables:
+
+  BUILD_TESTING="ON"
+  CMAKE_BUILD_TYPE="Debug"
+  STITCHKIT_ENABLE_SANITIZERS="ON"
+
+-- Configuring done (0.2s)
+-- Generating done (0.0s)
+-- Build files have been written to: [EPHEMERAL_ROOT]/stitchkit/build/sanitize

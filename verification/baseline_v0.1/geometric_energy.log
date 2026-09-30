@@ -1,0 +1,3 @@
+$ [EPHEMERAL_ROOT]/stitchkit/build/system/tests/stitchkit_tests geometric_energy tests/assets build/system/tests/outputs/geometric_energy
+Controlled structure residual sum: NIS=45.8181, GES=0.00165232
+PASS geometric_energy

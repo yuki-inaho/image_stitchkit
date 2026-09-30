@@ -1,0 +1,116 @@
+{
+  "version": 5,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 24,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "system",
+      "displayName": "Installed native dependencies",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/system",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_TESTING": "ON"
+      }
+    },
+    {
+      "name": "vcpkg",
+      "inherits": "system",
+      "displayName": "Pinned vcpkg CPU dependencies",
+      "binaryDir": "${sourceDir}/build/vcpkg",
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+      "cacheVariables": {
+        "VCPKG_MANIFEST_MODE": "ON"
+      }
+    },
+    {
+      "name": "cuda",
+      "inherits": "vcpkg",
+      "binaryDir": "${sourceDir}/build/cuda",
+      "cacheVariables": {
+        "STITCHKIT_ENABLE_CUDA": "ON"
+      }
+    },
+    {
+      "name": "lineae",
+      "inherits": "vcpkg",
+      "binaryDir": "${sourceDir}/build/lineae",
+      "cacheVariables": {
+        "STITCHKIT_ENABLE_LINEAE": "ON",
+        "VCPKG_MANIFEST_FEATURES": "lineae",
+        "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/cmake/triplets"
+      }
+    },
+    {
+      "name": "sanitize",
+      "inherits": "system",
+      "binaryDir": "${sourceDir}/build/sanitize",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "STITCHKIT_ENABLE_SANITIZERS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "system",
+      "configurePreset": "system"
+    },
+    {
+      "name": "vcpkg",
+      "configurePreset": "vcpkg"
+    },
+    {
+      "name": "cuda",
+      "configurePreset": "cuda"
+    },
+    {
+      "name": "lineae",
+      "configurePreset": "lineae"
+    },
+    {
+      "name": "sanitize",
+      "configurePreset": "sanitize"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "system",
+      "configurePreset": "system",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "vcpkg",
+      "configurePreset": "vcpkg",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cuda",
+      "configurePreset": "cuda",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "lineae",
+      "configurePreset": "lineae",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "sanitize",
+      "configurePreset": "sanitize",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}

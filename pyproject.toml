@@ -1,0 +1,43 @@
+[build-system]
+requires = ["scikit-build-core==1.1.0", "nanobind==2.15.0"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "stitchkit"
+version = "0.2.0"
+description = "Research image stitching with a C++ core and nanobind bindings"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+dependencies = ["numpy>=1.26,<3"]
+
+[project.optional-dependencies]
+notebook = ["pandas>=2.2,<3", "matplotlib>=3.9,<4", "pillow>=11,<13",
+            "ipykernel>=6.29,<8", "nbclient>=0.10,<0.11", "nbformat>=5.10,<6", "nbconvert>=7.16,<8", "jupyterlab>=4.3,<5"]
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "nanobind==2.15.0", "scikit-build-core==1.1.0"]
+
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+cmake.build-type = "Release"
+wheel.packages = ["python/stitchkit"]
+wheel.install-dir = ""
+build-dir = "build/python/{wheel_tag}"
+sdist.include = ["CMakeLists.txt", "cmake/**", "include/**", "src/**", "bindings/**", "python/**", "third_party/**", "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md"]
+sdist.exclude = [".venv/**", "build/**", "results/**", "verification/**", "dist/**", "tests/assets/**", "notebooks/*.html"]
+
+[tool.scikit-build.cmake.define]
+STITCHKIT_BUILD_PYTHON = "ON"
+STITCHKIT_BUILD_CLI = "OFF"
+STITCHKIT_BUILD_EXAMPLES = "OFF"
+STITCHKIT_INSTALL_CPP = "OFF"
+BUILD_TESTING = "OFF"
+
+[tool.pytest.ini_options]
+testpaths = ["python_tests"]
+addopts = "-ra"
+markers = ["slow: asset-based end-to-end native calls"]
+
+[tool.uv]
+required-version = ">=0.10"

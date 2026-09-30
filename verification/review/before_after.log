@@ -1,0 +1,5 @@
+              registration_ms  cli_wall_including_io_ms
+version                                                
+baseline_0.1       293.102531                398.249638
+refactor_0.2       222.757510                325.962003
+RGBA outputs identical

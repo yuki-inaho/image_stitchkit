@@ -1,0 +1,105 @@
+Internal ctest changing into directory: [EPHEMERAL_ROOT]/stitchkit_review/build/asan
+Test project [EPHEMERAL_ROOT]/stitchkit_review/build/asan
+      Start  1: unit.convolution
+      Start  2: unit.types
+ 1/43 Test  #1: unit.convolution .................   Passed    0.01 sec
+      Start  3: unit.mesh
+ 2/43 Test  #2: unit.types .......................   Passed    0.01 sec
+      Start  4: unit.solver
+ 3/43 Test  #3: unit.mesh ........................   Passed    0.01 sec
+      Start  5: unit.registration
+ 4/43 Test  #4: unit.solver ......................   Passed    0.01 sec
+      Start  6: unit.rew
+ 5/43 Test  #5: unit.registration ................   Passed    0.02 sec
+      Start  7: unit.geometric_energy
+ 6/43 Test  #6: unit.rew .........................   Passed    0.05 sec
+      Start  8: unit.raster
+ 7/43 Test  #8: unit.raster ......................   Passed    0.01 sec
+      Start  9: unit.io
+ 8/43 Test  #9: unit.io ..........................   Passed    0.05 sec
+      Start 10: unit.edges
+ 9/43 Test #10: unit.edges .......................   Passed    0.03 sec
+      Start 11: unit.lineae_contract
+10/43 Test #11: unit.lineae_contract .............   Passed    0.01 sec
+      Start 12: unit.device_contract
+11/43 Test #12: unit.device_contract .............   Passed    0.01 sec
+      Start 13: unit.failures
+12/43 Test #13: unit.failures ....................   Passed    0.17 sec
+      Start 14: optional.cuda_parity
+13/43 Test #14: optional.cuda_parity .............***Skipped   0.01 sec
+      Start 15: optional.lineae_model
+14/43 Test #15: optional.lineae_model ............***Skipped   0.01 sec
+      Start 16: e2e.rew.translation
+15/43 Test  #7: unit.geometric_energy ............   Passed    0.42 sec
+      Start 17: e2e.rew.chain
+16/43 Test #16: e2e.rew.translation ..............   Passed    0.78 sec
+      Start 18: e2e.rew.parallax
+17/43 Test #17: e2e.rew.chain ....................   Passed    1.38 sec
+      Start 19: e2e.rew.library
+18/43 Test #18: e2e.rew.parallax .................   Passed    0.85 sec
+      Start 20: e2e.rew.town_hall
+19/43 Test #20: e2e.rew.town_hall ................   Passed    1.92 sec
+      Start 21: e2e.rew.ship
+20/43 Test #19: e2e.rew.library ..................   Passed    2.38 sec
+      Start 22: e2e.niswgsp.translation
+21/43 Test #21: e2e.rew.ship .....................   Passed    1.36 sec
+      Start 23: e2e.niswgsp.chain
+22/43 Test #22: e2e.niswgsp.translation ..........   Passed    2.49 sec
+      Start 24: e2e.niswgsp.parallax
+23/43 Test #24: e2e.niswgsp.parallax .............   Passed    2.39 sec
+      Start 25: e2e.niswgsp.library
+24/43 Test #23: e2e.niswgsp.chain ................   Passed    5.55 sec
+      Start 26: e2e.niswgsp.town_hall
+25/43 Test #26: e2e.niswgsp.town_hall ............   Passed   10.56 sec
+      Start 27: e2e.niswgsp.ship
+26/43 Test #25: e2e.niswgsp.library ..............   Passed   14.04 sec
+      Start 28: e2e.gesgsp.translation
+27/43 Test #28: e2e.gesgsp.translation ...........   Passed    5.69 sec
+      Start 29: e2e.gesgsp.chain
+28/43 Test #27: e2e.niswgsp.ship .................   Passed   12.97 sec
+      Start 30: e2e.gesgsp.parallax
+29/43 Test #30: e2e.gesgsp.parallax ..............   Passed    5.27 sec
+      Start 31: e2e.gesgsp.library
+30/43 Test #29: e2e.gesgsp.chain .................   Passed   14.61 sec
+      Start 32: e2e.gesgsp.town_hall
+31/43 Test #32: e2e.gesgsp.town_hall .............   Passed   19.22 sec
+      Start 33: e2e.gesgsp.ship
+32/43 Test #31: e2e.gesgsp.library ...............   Passed   26.30 sec
+      Start 34: e2e.cli
+33/43 Test #34: e2e.cli ..........................   Passed    4.94 sec
+      Start 35: assets.integrity
+34/43 Test #35: assets.integrity .................   Passed    0.01 sec
+      Start 36: regression.atomic_row
+35/43 Test #36: regression.atomic_row ............   Passed    0.01 sec
+      Start 37: regression.weighted_overflow
+36/43 Test #37: regression.weighted_overflow .....   Passed    0.01 sec
+      Start 38: regression.mesh_bounds
+37/43 Test #38: regression.mesh_bounds ...........   Passed    0.01 sec
+      Start 39: regression.renderer_enum
+38/43 Test #39: regression.renderer_enum .........   Passed    0.01 sec
+      Start 40: regression.report_locale
+39/43 Test #40: regression.report_locale .........   Passed    0.01 sec
+      Start 41: regression.prepared_scene
+40/43 Test #41: regression.prepared_scene ........   Passed    0.71 sec
+      Start 42: regression.batch_features
+41/43 Test #42: regression.batch_features ........   Passed    0.79 sec
+      Start 43: regression.injection
+42/43 Test #43: regression.injection .............   Passed    0.03 sec
+43/43 Test #33: e2e.gesgsp.ship ..................   Passed   17.56 sec
+
+100% tests passed, 0 tests failed out of 43
+
+Label Time Summary:
+assets        =   0.01 sec*proc (1 test)
+cli           =   4.94 sec*proc (1 test)
+cpu           = 147.71 sec*proc (39 tests)
+e2e           = 150.27 sec*proc (19 tests)
+optional      =   0.02 sec*proc (2 tests)
+regression    =   1.57 sec*proc (8 tests)
+unit          =   0.81 sec*proc (13 tests)
+
+Total Test time (real) =  80.23 sec
+
+The following tests did not run:
+	 14 - optional.cuda_parity (Skipped)
+	 15 - optional.lineae_model (Skipped)

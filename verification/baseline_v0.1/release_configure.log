@@ -1,0 +1,9 @@
+$ cmake --preset system -DEigen3_INCLUDE_DIR=[PY_ENV]/lib/python3.13/site-packages/casadi/include/eigen3
+Preset CMake variables:
+
+  BUILD_TESTING="ON"
+  CMAKE_BUILD_TYPE="Release"
+
+-- Configuring done (0.2s)
+-- Generating done (0.0s)
+-- Build files have been written to: [EPHEMERAL_ROOT]/stitchkit/build/system

@@ -1,0 +1,14 @@
+Using CPython 3.13.5 interpreter at: [PY_ENV]/bin/python
+Creating virtual environment at: [EPHEMERAL_ROOT]/stitchkit_wheel_env
+Activate with: source [EPHEMERAL_ROOT]/stitchkit_wheel_env/bin/activate
+Using Python 3.13.5 environment at: [EPHEMERAL_ROOT]/stitchkit_wheel_env
+Resolved 1 package in 2ms
+Prepared 1 package in 4ms
+Installed 1 package in 0.62ms
+ + stitchkit==0.2.0 (from file://[EPHEMERAL_ROOT]/stitchkit_review/dist/stitchkit-0.2.0-cp313-cp313-linux_x86_64.whl)
+Using Python 3.13.5 environment at: [EPHEMERAL_ROOT]/stitchkit_wheel_env
+Resolved 1 package in 1ms
+Prepared 1 package in 0.20ms
+Uninstalled 1 package in 0.56ms
+Installed 1 package in 1ms
+ ~ stitchkit==0.2.0 (from file://[EPHEMERAL_ROOT]/stitchkit_review/dist/stitchkit-0.2.0-cp313-cp313-linux_x86_64.whl)

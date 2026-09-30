@@ -1,0 +1,2046 @@
+--- /dev/null
++++ b/.github/workflows/python.yml
+@@ -0,0 +1,44 @@
++name: Python native extension and notebook
++on: [push, pull_request, workflow_dispatch]
++permissions:
++  contents: read
++jobs:
++  python:
++    runs-on: ubuntu-24.04
++    strategy:
++      fail-fast: false
++      matrix:
++        python: ["3.11", "3.13"]
++    env:
++      CMAKE_BUILD_PARALLEL_LEVEL: 2
++      OMP_NUM_THREADS: 1
++      OPENBLAS_NUM_THREADS: 1
++      MKL_NUM_THREADS: 1
++    steps:
++      - uses: actions/checkout@v4
++      - uses: actions/setup-python@v5
++        with:
++          python-version: ${{ matrix.python }}
++      - run: sudo apt-get update && sudo apt-get install -y ninja-build libeigen3-dev libpng-dev libjpeg-dev
++      - run: python -m pip install uv==0.10.0
++      # No synthetic lock file: a connected run resolves and emits uv.lock for review.
++      - run: uv sync --extra notebook --group dev
++      - run: cmake -S . -B build/release -G Ninja -DCMAKE_BUILD_TYPE=Release
++      - run: cmake --build build/release --parallel 2
++      - run: ctest --test-dir build/release --output-on-failure --output-junit cpp-tests.xml
++      - run: uv run python -m pytest --junitxml=python-tests.xml
++      - run: uv build
++      - if: matrix.python == '3.13'
++        run: uv run python tools/run_notebook.py
++      - uses: actions/upload-artifact@v4
++        if: always()
++        with:
++          name: python-${{ matrix.python }}
++          path: |
++            python-tests.xml
++            build/release/cpp-tests.xml
++            uv.lock
++            dist/
++            results/notebook/
++            notebooks/stitchkit_evaluation.ipynb
++            notebooks/stitchkit_evaluation.html
+--- a/.gitignore
++++ b/.gitignore
+@@ -1,7 +1,11 @@
+ /build/
+ /.tools/
++/.venv/
+ /vcpkg_installed/
+ /CMakeUserPresets.json
+ /.cache/
++/dist/
+ __pycache__/
++.pytest_cache/
++.ipynb_checkpoints/
+ *.onnx
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,11 +1,14 @@
+ cmake_minimum_required(VERSION 3.24)
+-project(stitchkit VERSION 0.1.0 LANGUAGES C CXX)
++project(stitchkit VERSION 0.2.0 LANGUAGES C CXX)
+ include(GNUInstallDirs)
+ include(CTest)
+ include(CMakePackageConfigHelpers)
+ option(STITCHKIT_ENABLE_CUDA "Build the optional CUDA sampling/compositing backend" OFF)
+ option(STITCHKIT_ENABLE_LINEAE "Build the optional ONNX Runtime LINEAE detector" OFF)
+ option(STITCHKIT_ENABLE_SANITIZERS "Enable ASan and UBSan on Clang/GCC" OFF)
++option(STITCHKIT_BUILD_PYTHON "Build the nanobind Python extension" OFF)
++option(STITCHKIT_BUILD_CLI "Build the command-line application" ON)
++option(STITCHKIT_INSTALL_CPP "Install the native SDK" ON)
+ option(STITCHKIT_BUILD_EXAMPLES "Build the library usage example" ON)
+ set(CMAKE_CXX_STANDARD 17)
+ set(CMAKE_CXX_STANDARD_REQUIRED ON)
+@@ -31,7 +34,7 @@
+   target_compile_definitions(stitchkit_vlfeat PRIVATE _CRT_SECURE_NO_WARNINGS)
+ endif()
+ 
+-add_library(stitchkit STATIC src/types.cpp src/io.cpp src/jpeg_bridge.c src/features.cpp src/registration.cpp
++add_library(stitchkit STATIC src/types.cpp src/io.cpp src/report.cpp src/jpeg_bridge.c src/features.cpp src/registration.cpp
+   src/lineae.cpp src/solver.cpp src/mesh_warp.cpp src/rew.cpp src/raster.cpp src/structures.cpp src/stitcher.cpp
+   $<TARGET_OBJECTS:stitchkit_vlfeat>)
+ add_library(stitchkit::stitchkit ALIAS stitchkit)
+@@ -40,6 +43,7 @@
+   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}> PRIVATE src third_party/vlfeat)
+ target_link_libraries(stitchkit PRIVATE $<BUILD_INTERFACE:Eigen3::Eigen> PNG::PNG JPEG::JPEG Threads::Threads)
+ target_compile_features(stitchkit PUBLIC cxx_std_17)
++target_compile_definitions(stitchkit PRIVATE STITCHKIT_VERSION="${PROJECT_VERSION}")
+ target_compile_definitions(stitchkit PRIVATE VL_STATIC VL_DISABLE_SSE2 VL_DISABLE_AVX VL_DISABLE_OPENMP VL_DISABLE_THREADS)
+ if(UNIX)
+   target_link_libraries(stitchkit PRIVATE m)
+@@ -83,8 +87,10 @@
+   target_link_options(stitchkit PUBLIC -fsanitize=address,undefined -fno-omit-frame-pointer)
+ endif()
+ 
+-add_executable(stitch app/main.cpp)
+-target_link_libraries(stitch PRIVATE stitchkit::stitchkit)
++if(STITCHKIT_BUILD_CLI)
++  add_executable(stitch app/main.cpp)
++  target_link_libraries(stitch PRIVATE stitchkit::stitchkit)
++endif()
+ if(STITCHKIT_BUILD_EXAMPLES)
+   add_executable(stitchkit_example examples/basic.cpp)
+   target_link_libraries(stitchkit_example PRIVATE stitchkit::stitchkit)
+@@ -93,7 +99,12 @@
+   add_subdirectory(tests)
+ endif()
+ 
+-install(TARGETS stitchkit stitch EXPORT stitchkitTargets ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
++if(STITCHKIT_INSTALL_CPP)
++set(native_install_targets stitchkit)
++if(STITCHKIT_BUILD_CLI)
++  list(APPEND native_install_targets stitch)
++endif()
++install(TARGETS ${native_install_targets} EXPORT stitchkitTargets ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+ install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+ install(EXPORT stitchkitTargets NAMESPACE stitchkit:: DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/stitchkit)
+@@ -105,3 +116,24 @@
+   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/stitchkit)
+ install(FILES third_party/vlfeat/COPYING DESTINATION ${CMAKE_INSTALL_DATADIR}/stitchkit/licenses RENAME VLFeat-BSD.txt)
+ install(FILES LICENSE THIRD_PARTY_NOTICES.md DESTINATION ${CMAKE_INSTALL_DATADIR}/stitchkit/licenses)
++
++endif() # STITCHKIT_INSTALL_CPP
++
++if(STITCHKIT_BUILD_PYTHON)
++  find_package(Python 3.10 COMPONENTS Interpreter Development.Module REQUIRED)
++  execute_process(COMMAND "${Python_EXECUTABLE}" -m nanobind --cmake_dir
++    OUTPUT_VARIABLE nanobind_ROOT OUTPUT_STRIP_TRAILING_WHITESPACE
++    COMMAND_ERROR_IS_FATAL ANY)
++  find_package(nanobind 2.15 CONFIG REQUIRED)
++  nanobind_add_module(_native NB_STATIC bindings/module.cpp)
++  target_link_libraries(_native PRIVATE stitchkit::stitchkit)
++  target_compile_definitions(_native PRIVATE STITCHKIT_VERSION="${PROJECT_VERSION}"
++    STITCHKIT_COMPILER_INFO="${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}"
++    STITCHKIT_BUILD_CONFIGURATION="$<CONFIG>")
++  install(TARGETS _native LIBRARY DESTINATION stitchkit RUNTIME DESTINATION stitchkit COMPONENT python)
++endif()
++
++if(STITCHKIT_BUILD_PYTHON)
++  install(FILES LICENSE THIRD_PARTY_NOTICES.md DESTINATION stitchkit/licenses COMPONENT python)
++  install(FILES third_party/vlfeat/COPYING DESTINATION stitchkit/licenses RENAME VLFeat-BSD.txt COMPONENT python)
++endif()
+--- /dev/null
++++ b/bindings/module.cpp
+@@ -0,0 +1,160 @@
++// Python ownership and GIL operations belong in this adapter, never in the C++ core.
++#include <nanobind/nanobind.h>
++#include <nanobind/ndarray.h>
++#include <nanobind/stl/filesystem.h>
++#include <nanobind/stl/string.h>
++#include <nanobind/stl/tuple.h>
++#include <stitchkit/stitcher.hpp>
++#include <stitchkit/lineae.hpp>
++#include <algorithm>
++#include <cstring>
++#include <memory>
++#include <limits>
++
++namespace nb = nanobind;
++namespace sk = stitchkit;
++using namespace nb::literals;
++namespace {
++std::string nanobind_version() {
++    return std::to_string(NB_VERSION_MAJOR) + "." + std::to_string(NB_VERSION_MINOR) + "." +
++           std::to_string(NB_VERSION_PATCH);
++}
++using InputArray = nb::ndarray<nb::numpy, const std::uint8_t, nb::ndim<3>, nb::c_contig, nb::device::cpu>;
++using RgbArray = nb::ndarray<nb::numpy, const std::uint8_t, nb::ndim<3>, nb::c_contig>;
++using MaskArray = nb::ndarray<nb::numpy, const std::uint8_t, nb::ndim<2>, nb::c_contig>;
++
++sk::Image snapshot(const InputArray& a) {
++    if (a.shape(2) != 3 || a.shape(0) > 32768 || a.shape(1) > 32768)
++        throw nb::value_error("Expected uint8 RGB array with shape (H,W,3), dimensions 2..32768");
++    sk::Image image(static_cast<int>(a.shape(1)), static_cast<int>(a.shape(0)));
++    std::memcpy(image.pixels.data(), a.data(), image.pixels.size());
++    return image;
++}
++std::vector<sk::Image> snapshots(const nb::list& arrays) {
++    if (arrays.size() < 2 || arrays.size() > 16)
++        throw nb::value_error("Expected 2 to 16 ordered RGB arrays");
++    std::vector<sk::Image> images;
++    images.reserve(arrays.size());
++    for (const auto item : arrays) {
++        // convert=false: do not silently truncate floats or reinterpret RGBA/BGR.
++        const auto a = nb::cast<InputArray>(item, false);
++        images.push_back(snapshot(a));
++    }
++    return images;
++}
++struct PythonResult {
++    std::shared_ptr<const sk::Result> value;
++    explicit PythonResult(sk::Result r) : value(std::make_shared<sk::Result>(std::move(r))) {}
++};
++template <typename T> nb::capsule owner(const std::shared_ptr<const T>& ptr) {
++    auto held = std::make_unique<std::shared_ptr<const T>>(ptr);
++    nb::capsule capsule(held.get(), [](void* p) noexcept {
++        delete static_cast<std::shared_ptr<const T>*>(p);
++    });
++    held.release();
++    return capsule;
++}
++RgbArray result_image(const PythonResult& r) {
++    const auto& i = r.value->image;
++    return RgbArray(i.pixels.data(), {std::size_t(i.height), std::size_t(i.width), 3}, owner(r.value));
++}
++MaskArray result_mask(const PythonResult& r) {
++    const auto& i = r.value->image;
++    return MaskArray(r.value->mask.data(), {std::size_t(i.height), std::size_t(i.width)}, owner(r.value));
++}
++RgbArray owned_image(sk::Image image) {
++    std::shared_ptr<const sk::Image> held = std::make_shared<sk::Image>(std::move(image));
++    return RgbArray(held->pixels.data(), {std::size_t(held->height), std::size_t(held->width), 3}, owner(held));
++}
++} // namespace
++NB_MODULE(_native, m) {
++    m.doc() = "Native stitching; input snapshots, immutable output views, explicit CPU/CUDA selection.";
++    m.attr("__version__") = sk::version();
++    m.attr("nanobind_version") = nanobind_version();
++    nb::exception<sk::Error>(m, "StitchError", PyExc_RuntimeError);
++    nb::enum_<sk::Method>(m, "Method").value("rew", sk::Method::rew)
++        .value("niswgsp", sk::Method::niswgsp).value("gesgsp", sk::Method::gesgsp);
++    nb::enum_<sk::Device>(m, "Device").value("cpu", sk::Device::cpu)
++        .value("cuda", sk::Device::cuda).value("auto", sk::Device::automatic);
++    nb::enum_<sk::StructureMode>(m, "StructureMode").value("edges", sk::StructureMode::edges)
++        .value("lineae", sk::StructureMode::lineae).value("none", sk::StructureMode::none);
++    auto options = nb::class_<sk::Options>(m, "Options").def(nb::init<>()).def("validate", &sk::Options::validate);
++    options.def_rw("method", &sk::Options::method);
++    options.def_rw("device", &sk::Options::device);
++    options.def_rw("structures", &sk::Options::structures);
++    options.def_rw("grid_size", &sk::Options::grid_size);
++    options.def_rw("max_features", &sk::Options::max_features);
++    options.def_rw("ratio_threshold", &sk::Options::ratio_threshold);
++    options.def_rw("ransac_threshold", &sk::Options::ransac_threshold);
++    options.def_rw("ransac_iterations", &sk::Options::ransac_iterations);
++    options.def_rw("minimum_matches", &sk::Options::minimum_matches);
++    options.def_rw("seed", &sk::Options::seed);
++    options.def_rw("use_apap", &sk::Options::use_apap);
++    options.def_rw("apap_sigma", &sk::Options::apap_sigma);
++    options.def_rw("alignment_weight", &sk::Options::alignment_weight);
++    options.def_rw("local_similarity_weight", &sk::Options::local_similarity_weight);
++    options.def_rw("global_beta", &sk::Options::global_beta);
++    options.def_rw("global_gamma", &sk::Options::global_gamma);
++    options.def_rw("structure_weight", &sk::Options::structure_weight);
++    options.def_rw("tps_lambda", &sk::Options::tps_lambda);
++    options.def_rw("max_tps_controls", &sk::Options::max_tps_controls);
++    options.def_rw("max_structures", &sk::Options::max_structures);
++    options.def_rw("feather_width", &sk::Options::feather_width);
++    options.def_rw("max_canvas_pixels", &sk::Options::max_canvas_pixels);
++    options.def_rw("lineae_model", &sk::Options::lineae_model);
++    options.def_rw("lineae_variant", &sk::Options::lineae_variant);
++    options.def_rw("lineae_device", &sk::Options::lineae_device);
++    options.def_rw("lineae_threshold", &sk::Options::lineae_threshold);
++    nb::class_<sk::PreparedScene>(m, "PreparedScene")
++        .def_prop_ro("image_count", &sk::PreparedScene::image_count)
++        .def_prop_ro("registration_ms", &sk::PreparedScene::registration_ms)
++        .def_prop_ro("feature_extractions", &sk::PreparedScene::feature_extractions);
++    nb::class_<PythonResult>(m, "Result")
++        .def_prop_ro("image", &result_image, nb::rv_policy::reference)
++        .def_prop_ro("mask", &result_mask, nb::rv_policy::reference)
++        .def_prop_ro("origin", [](const PythonResult& r) {
++            return std::make_tuple(r.value->canvas.origin.x, r.value->canvas.origin.y);
++        })
++        .def("report_json", [](const PythonResult& r) { return sk::report_json(*r.value); })
++        .def("save", [](const PythonResult& r, const std::filesystem::path& path) {
++            nb::gil_scoped_release release;
++            sk::write_png(path, r.value->image, r.value->mask);
++        }, "path"_a);
++    m.def("stitch", [](const nb::list& arrays, sk::Options options) {
++        auto images = snapshots(arrays); // GIL held until the owned snapshot is complete.
++        nb::gil_scoped_release release;
++        return PythonResult(sk::Stitcher(std::move(options)).stitch(std::move(images)));
++    }, "images"_a, "options"_a);
++    m.def("prepare", [](const nb::list& arrays, sk::Options options) {
++        auto images = snapshots(arrays);
++        nb::gil_scoped_release release;
++        return sk::Stitcher(std::move(options)).prepare(std::move(images));
++    }, "images"_a, "options"_a);
++    m.def("compose", [](const sk::PreparedScene& scene, sk::Options options) {
++        nb::gil_scoped_release release;
++        return PythonResult(sk::Stitcher(std::move(options)).compose(scene));
++    }, "scene"_a, "options"_a);
++    m.def("load", [](const std::filesystem::path& path, int max_side) {
++        sk::Image image;
++        {
++            nb::gil_scoped_release release;
++            image = sk::read_image(path);
++            if (max_side < 0 || max_side == 1)
++                throw sk::Error("max_side must be 0 (original size) or at least 2");
++            if (max_side > 0) image = sk::limit_size(image, max_side);
++        }
++        return owned_image(std::move(image)); // Python array/capsule creation requires the GIL.
++    }, "path"_a, "max_side"_a = 0);
++    m.def("capabilities", [] {
++        nb::dict d;
++        d["version"] = sk::version();
++        d["cxx_compiler"] = STITCHKIT_COMPILER_INFO;
++        d["configuration"] = STITCHKIT_BUILD_CONFIGURATION;
++        d["nanobind"] = nanobind_version();
++        d["cuda_compiled"] = sk::cuda_compiled();
++        d["cuda_available"] = sk::cuda_available();
++        d["lineae_compiled"] = sk::lineae_compiled();
++        d["gpu_scope"] = "sampling and compositing only";
++        return d;
++    });
++}
+--- a/include/stitchkit/interfaces.hpp
++++ b/include/stitchkit/interfaces.hpp
+@@ -5,11 +5,19 @@
+ 
+ namespace stitchkit {
+ 
++struct MatchBatch {
++    std::vector<PairRegistration> pairs;
++    int feature_extractions = -1; // Unknown for third-party matchers.
++};
++
+ class IFeatureMatcher {
+   public:
+     virtual ~IFeatureMatcher() = default;
+     virtual PairRegistration match(const Image& source, const Image& target,
+                                    const Options& options) const = 0;
++    // Default adapter preserves existing injected pair matchers.
++    virtual MatchBatch match_sequence(const std::vector<Image>& images,
++                                      const Options& options) const;
+ };
+ class IStructureDetector {
+   public:
+--- a/include/stitchkit/stitcher.hpp
++++ b/include/stitchkit/stitcher.hpp
+@@ -3,26 +3,45 @@
+ 
+ namespace stitchkit {
+ 
+-// Each invocation owns its working state. Components can be dependency-injected for tests
+-// and alternative feature extraction/solvers without changing the pipeline.
++// An immutable, owning snapshot. No public constructor or mutable access to its images
++// or correspondences; sharing a snapshot never aliases a caller's input buffers.
++class PreparedScene {
++  public:
++    std::size_t image_count() const;
++    double registration_ms() const;
++    int feature_extractions() const;
++  private:
++    struct State;
++    std::shared_ptr<const State> state_;
++    explicit PreparedScene(std::shared_ptr<const State> state);
++    friend class Stitcher;
++};
++
+ class Stitcher {
+   public:
+     explicit Stitcher(Options options = {});
+     Stitcher(Options options, std::unique_ptr<IFeatureMatcher> matcher,
+              std::unique_ptr<IStructureDetector> detector,
+-             std::shared_ptr<ILeastSquaresSolver> solver);
+-    Result stitch(const std::vector<Image>& images) const;
+-
++             std::shared_ptr<ILeastSquaresSolver> solver,
++             std::shared_ptr<IRenderer> renderer = {});
++    // By-value input: lvalues are copied; owned temporary images can be moved in.
++    Result stitch(std::vector<Image> images) const;
++    PreparedScene prepare(std::vector<Image> images) const;
++    Result compose(const PreparedScene& scene) const;
+   private:
+     Options options_;
+     std::unique_ptr<IFeatureMatcher> matcher_;
+     std::unique_ptr<IStructureDetector> detector_;
+     std::shared_ptr<ILeastSquaresSolver> solver_;
++    std::shared_ptr<IRenderer> renderer_;
++    Result compose_impl(const PreparedScene& scene, IRenderer& renderer,
++                        std::vector<std::string> warnings, bool reused) const;
+ };
+ 
+ Image read_image(const std::filesystem::path& path);
+ void write_png(const std::filesystem::path& path, const Image& image,
+                const std::vector<std::uint8_t>& mask = {});
++std::string report_json(const Result& result);
+ void write_report(const std::filesystem::path& path, const Result& result);
+ Image resize_image(const Image& input, Size target);
+ Image limit_size(const Image& input, int max_side);
+--- a/include/stitchkit/types.hpp
++++ b/include/stitchkit/types.hpp
+@@ -150,6 +150,9 @@
+     std::string requested_device;
+     std::string actual_device;
+     std::string line_device;
++    bool registration_reused = false;
++    int feature_extractions = -1;
++    double prepared_registration_ms = 0.0; // Historical cost, not part of this call.
+     int feature_matches = 0;
+     int dense_matches = 0;
+     int structures = 0;
+@@ -161,8 +164,10 @@
+     double alignment_rmse_after = 0.0;
+     double solver_relative_residual = 0.0;
+     double registration_ms = 0.0;
++    double structure_ms = 0.0;
+     double geometry_ms = 0.0;
+     double render_ms = 0.0;
++    double total_ms = 0.0;
+     std::vector<std::string> warnings;
+ };
+ struct Result {
+--- /dev/null
++++ b/pyproject.toml
+@@ -0,0 +1,43 @@
++[build-system]
++requires = ["scikit-build-core==1.1.0", "nanobind==2.15.0"]
++build-backend = "scikit_build_core.build"
++
++[project]
++name = "stitchkit"
++version = "0.2.0"
++description = "Research image stitching with a C++ core and nanobind bindings"
++readme = "README.md"
++requires-python = ">=3.10"
++license = {file = "LICENSE"}
++dependencies = ["numpy>=1.26,<3"]
++
++[project.optional-dependencies]
++notebook = ["pandas>=2.2,<3", "matplotlib>=3.9,<4", "pillow>=11,<13",
++            "ipykernel>=6.29,<8", "nbclient>=0.10,<0.11", "nbformat>=5.10,<6", "nbconvert>=7.16,<8", "jupyterlab>=4.3,<5"]
++
++[dependency-groups]
++dev = ["pytest>=8,<10", "nanobind==2.15.0", "scikit-build-core==1.1.0"]
++
++[tool.scikit-build]
++minimum-version = "build-system.requires"
++cmake.build-type = "Release"
++wheel.packages = ["python/stitchkit"]
++wheel.install-dir = ""
++build-dir = "build/python/{wheel_tag}"
++sdist.include = ["CMakeLists.txt", "cmake/**", "include/**", "src/**", "bindings/**", "python/**", "third_party/**", "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md"]
++sdist.exclude = [".venv/**", "build/**", "results/**", "verification/**", "dist/**", "tests/assets/**", "notebooks/*.html"]
++
++[tool.scikit-build.cmake.define]
++STITCHKIT_BUILD_PYTHON = "ON"
++STITCHKIT_BUILD_CLI = "OFF"
++STITCHKIT_BUILD_EXAMPLES = "OFF"
++STITCHKIT_INSTALL_CPP = "OFF"
++BUILD_TESTING = "OFF"
++
++[tool.pytest.ini_options]
++testpaths = ["python_tests"]
++addopts = "-ra"
++markers = ["slow: asset-based end-to-end native calls"]
++
++[tool.uv]
++required-version = ">=0.10"
+--- /dev/null
++++ b/python/stitchkit/__init__.py
+@@ -0,0 +1,163 @@
++"""C++ image stitching with immutable configuration and explicit image ownership.
++
++Images are RGB uint8 arrays, never BGR. Non-contiguous arrays are explicitly
++made contiguous, then copied into C++ before computation releases the GIL.
++Returned image/mask arrays are read-only views with independent lifetime owners.
++"""
++from __future__ import annotations
++
++from dataclasses import dataclass, fields, replace
++import json
++from numbers import Integral, Real
++from pathlib import Path
++from typing import Any, Literal, Sequence
++
++import numpy as np
++from numpy.typing import NDArray
++
++from . import _native
++
++__version__: str = _native.__version__
++StitchError = _native.StitchError
++PreparedScene = _native.PreparedScene
++Result = _native.Result
++_defaults = _native.Options()
++
++
++@dataclass(frozen=True, slots=True)
++class Options:
++    """Validated immutable settings. Defaults are taken from C++, not duplicated.
++
++    Registration settings cannot change when composing an existing PreparedScene.
++    Method, geometry and device settings can change independently. CUDA currently
++    covers sampling/compositing only, not feature extraction or sparse solving.
++    """
++    method: Literal["rew", "niswgsp", "gesgsp"] = _defaults.method.name
++    device: Literal["cpu", "cuda", "auto"] = _defaults.device.name
++    structures: Literal["edges", "lineae", "none"] = _defaults.structures.name
++    grid_size: int = _defaults.grid_size
++    max_features: int = _defaults.max_features
++    ratio_threshold: float = _defaults.ratio_threshold
++    ransac_threshold: float = _defaults.ransac_threshold
++    ransac_iterations: int = _defaults.ransac_iterations
++    minimum_matches: int = _defaults.minimum_matches
++    seed: int = _defaults.seed
++    use_apap: bool = _defaults.use_apap
++    apap_sigma: float = _defaults.apap_sigma
++    alignment_weight: float = _defaults.alignment_weight
++    local_similarity_weight: float = _defaults.local_similarity_weight
++    global_beta: float = _defaults.global_beta
++    global_gamma: float = _defaults.global_gamma
++    structure_weight: float = _defaults.structure_weight
++    tps_lambda: float = _defaults.tps_lambda
++    max_tps_controls: int = _defaults.max_tps_controls
++    max_structures: int = _defaults.max_structures
++    feather_width: float = _defaults.feather_width
++    max_canvas_pixels: int = _defaults.max_canvas_pixels
++    lineae_model: str | Path = ""
++    lineae_variant: str = _defaults.lineae_variant
++    lineae_device: Literal["cpu", "cuda", "auto"] = _defaults.lineae_device.name
++    lineae_threshold: float = _defaults.lineae_threshold
++
++    def __post_init__(self) -> None:
++        _to_native(self).validate()
++
++    def with_updates(self, **changes: Any) -> Options:
++        """Return a new validated configuration; never mutate one in-flight."""
++        return replace(self, **changes)
++
++    def as_dict(self) -> dict[str, Any]:
++        return {f.name: str(getattr(self, f.name)) if f.name == "lineae_model"
++                else getattr(self, f.name) for f in fields(self)}
++
++
++def _to_native(options: Options) -> _native.Options:
++    if not isinstance(options, Options):
++        raise TypeError("options must be stitchkit.Options")
++    native = _native.Options()
++    enum_types = {"method": _native.Method, "device": _native.Device,
++                  "lineae_device": _native.Device, "structures": _native.StructureMode}
++    for f in fields(options):
++        value = getattr(options, f.name)
++        if f.name in enum_types:
++            if not isinstance(value, str) or value not in enum_types[f.name].__members__:
++                raise ValueError(f"Invalid {f.name}: {value!r}")
++            value = enum_types[f.name].__members__[value]
++        elif f.name == "lineae_model":
++            if not isinstance(value, (str, Path)):
++                raise TypeError("lineae_model must be a path or string")
++            value = str(value)
++        elif f.type == "int":
++            if isinstance(value, bool) or not isinstance(value, Integral):
++                raise TypeError(f"{f.name} must be an integer")
++            value = int(value)
++        elif f.type == "float":
++            if isinstance(value, bool) or not isinstance(value, Real):
++                raise TypeError(f"{f.name} must be a real number")
++            value = float(value)
++        elif f.type == "bool" and not isinstance(value, bool):
++            raise TypeError(f"{f.name} must be a boolean")
++        elif f.type == "str" and not isinstance(value, str):
++            raise TypeError(f"{f.name} must be a string")
++        setattr(native, f.name, value)
++    return native
++
++
++def _arrays(images: Sequence[NDArray[np.uint8]]) -> list[NDArray[np.uint8]]:
++    if isinstance(images, np.ndarray):
++        raise TypeError("Pass a sequence of 2..16 RGB images, not one ndarray")
++    arrays = list(images)
++    if not 2 <= len(arrays) <= 16:
++        raise ValueError("Expected 2 to 16 ordered RGB images")
++    for index, a in enumerate(arrays):
++        if not isinstance(a, np.ndarray) or a.dtype != np.uint8:
++            raise TypeError(f"Image {index}: expected a NumPy uint8 array, no implicit dtype conversion")
++        if a.ndim != 3 or a.shape[2] != 3:
++            raise ValueError(f"Image {index}: expected RGB shape (H,W,3); RGBA/grayscale are not implicit")
++        if not 2 <= a.shape[0] <= 32768 or not 2 <= a.shape[1] <= 32768 or a.shape[0] * a.shape[1] > 64_000_000:
++            raise ValueError(f"Image {index}: dimensions exceed the C++ image limits")
++        arrays[index] = np.ascontiguousarray(a)
++    return arrays
++
++
++def stitch(images: Sequence[NDArray[np.uint8]], options: Options | None = None) -> Result:
++    """Snapshot and stitch an ordered, overlapping sequence; no subprocess is used."""
++    return _native.stitch(_arrays(images), _to_native(options if options is not None else Options()))
++
++
++def prepare(images: Sequence[NDArray[np.uint8]], options: Options | None = None) -> PreparedScene:
++    """Own an input snapshot and compute correspondences once for mode comparisons."""
++    return _native.prepare(_arrays(images), _to_native(options if options is not None else Options()))
++
++
++def compose(scene: PreparedScene, options: Options | None = None) -> Result:
++    """Estimate a warp and render using existing correspondences, without re-matching.
++
++    Pass the same registration options used for prepare(). Defaults are not
++    inferred from the scene; a mismatch raises StitchError rather than reusing
++    correspondences computed under different settings.
++    """
++    if not isinstance(scene, PreparedScene):
++        raise TypeError("scene must be a PreparedScene returned by prepare")
++    return _native.compose(scene, _to_native(options if options is not None else Options()))
++
++
++def load(path: str | Path, *, max_side: int = 0) -> NDArray[np.uint8]:
++    """Read PNG/JPEG with the C++ codec, optionally resize. Input PNG alpha is flattened on white."""
++    if isinstance(max_side, bool) or not isinstance(max_side, Integral):
++        raise TypeError("max_side must be an integer")
++    return _native.load(Path(path), int(max_side))
++
++
++def report(result: Result) -> dict[str, Any]:
++    """Parse the same locale-independent JSON schema used by the native CLI."""
++    return json.loads(result.report_json())
++
++
++def capabilities() -> dict[str, Any]:
++    """Return build features and actual runtime device availability, not just requested flags."""
++    return dict(_native.capabilities())
++
++
++__all__ = ["Options", "Result", "PreparedScene", "StitchError", "stitch", "prepare", "compose",
++           "load", "report", "capabilities", "__version__"]
+--- /dev/null
++++ b/python/stitchkit/_native.pyi
+@@ -0,0 +1,233 @@
++"""
++Native stitching; input snapshots, immutable output views, explicit CPU/CUDA selection.
++"""
++
++import enum
++import os
++import pathlib
++from typing import Annotated
++
++import numpy
++from numpy.typing import NDArray
++
++
++nanobind_version: str = '2.15.0'
++
++class StitchError(RuntimeError):
++    pass
++
++class Method(enum.Enum):
++    rew = 0
++
++    niswgsp = 1
++
++    gesgsp = 2
++
++class Device(enum.Enum):
++    cpu = 0
++
++    cuda = 1
++
++    auto = 2
++
++class StructureMode(enum.Enum):
++    edges = 0
++
++    lineae = 1
++
++    none = 2
++
++class Options:
++    def __init__(self) -> None: ...
++
++    def validate(self) -> None: ...
++
++    @property
++    def method(self) -> Method: ...
++
++    @method.setter
++    def method(self, arg: Method, /) -> None: ...
++
++    @property
++    def device(self) -> Device: ...
++
++    @device.setter
++    def device(self, arg: Device, /) -> None: ...
++
++    @property
++    def structures(self) -> StructureMode: ...
++
++    @structures.setter
++    def structures(self, arg: StructureMode, /) -> None: ...
++
++    @property
++    def grid_size(self) -> int: ...
++
++    @grid_size.setter
++    def grid_size(self, arg: int, /) -> None: ...
++
++    @property
++    def max_features(self) -> int: ...
++
++    @max_features.setter
++    def max_features(self, arg: int, /) -> None: ...
++
++    @property
++    def ratio_threshold(self) -> float: ...
++
++    @ratio_threshold.setter
++    def ratio_threshold(self, arg: float, /) -> None: ...
++
++    @property
++    def ransac_threshold(self) -> float: ...
++
++    @ransac_threshold.setter
++    def ransac_threshold(self, arg: float, /) -> None: ...
++
++    @property
++    def ransac_iterations(self) -> int: ...
++
++    @ransac_iterations.setter
++    def ransac_iterations(self, arg: int, /) -> None: ...
++
++    @property
++    def minimum_matches(self) -> int: ...
++
++    @minimum_matches.setter
++    def minimum_matches(self, arg: int, /) -> None: ...
++
++    @property
++    def seed(self) -> int: ...
++
++    @seed.setter
++    def seed(self, arg: int, /) -> None: ...
++
++    @property
++    def use_apap(self) -> bool: ...
++
++    @use_apap.setter
++    def use_apap(self, arg: bool, /) -> None: ...
++
++    @property
++    def apap_sigma(self) -> float: ...
++
++    @apap_sigma.setter
++    def apap_sigma(self, arg: float, /) -> None: ...
++
++    @property
++    def alignment_weight(self) -> float: ...
++
++    @alignment_weight.setter
++    def alignment_weight(self, arg: float, /) -> None: ...
++
++    @property
++    def local_similarity_weight(self) -> float: ...
++
++    @local_similarity_weight.setter
++    def local_similarity_weight(self, arg: float, /) -> None: ...
++
++    @property
++    def global_beta(self) -> float: ...
++
++    @global_beta.setter
++    def global_beta(self, arg: float, /) -> None: ...
++
++    @property
++    def global_gamma(self) -> float: ...
++
++    @global_gamma.setter
++    def global_gamma(self, arg: float, /) -> None: ...
++
++    @property
++    def structure_weight(self) -> float: ...
++
++    @structure_weight.setter
++    def structure_weight(self, arg: float, /) -> None: ...
++
++    @property
++    def tps_lambda(self) -> float: ...
++
++    @tps_lambda.setter
++    def tps_lambda(self, arg: float, /) -> None: ...
++
++    @property
++    def max_tps_controls(self) -> int: ...
++
++    @max_tps_controls.setter
++    def max_tps_controls(self, arg: int, /) -> None: ...
++
++    @property
++    def max_structures(self) -> int: ...
++
++    @max_structures.setter
++    def max_structures(self, arg: int, /) -> None: ...
++
++    @property
++    def feather_width(self) -> float: ...
++
++    @feather_width.setter
++    def feather_width(self, arg: float, /) -> None: ...
++
++    @property
++    def max_canvas_pixels(self) -> int: ...
++
++    @max_canvas_pixels.setter
++    def max_canvas_pixels(self, arg: int, /) -> None: ...
++
++    @property
++    def lineae_model(self) -> pathlib.Path: ...
++
++    @lineae_model.setter
++    def lineae_model(self, arg: str | os.PathLike, /) -> None: ...
++
++    @property
++    def lineae_variant(self) -> str: ...
++
++    @lineae_variant.setter
++    def lineae_variant(self, arg: str, /) -> None: ...
++
++    @property
++    def lineae_device(self) -> Device: ...
++
++    @lineae_device.setter
++    def lineae_device(self, arg: Device, /) -> None: ...
++
++    @property
++    def lineae_threshold(self) -> float: ...
++
++    @lineae_threshold.setter
++    def lineae_threshold(self, arg: float, /) -> None: ...
++
++class PreparedScene:
++    @property
++    def image_count(self) -> int: ...
++
++    @property
++    def registration_ms(self) -> float: ...
++
++    @property
++    def feature_extractions(self) -> int: ...
++
++class Result:
++    @property
++    def image(self) -> Annotated[NDArray[numpy.uint8], dict(shape=(None, None, None), order='C', writable=False)]: ...
++
++    @property
++    def mask(self) -> Annotated[NDArray[numpy.uint8], dict(shape=(None, None), order='C', writable=False)]: ...
++
++    @property
++    def origin(self) -> tuple[float, float]: ...
++
++    def report_json(self) -> str: ...
++
++    def save(self, path: str | os.PathLike) -> None: ...
++
++def stitch(images: list, options: Options) -> Result: ...
++
++def prepare(images: list, options: Options) -> PreparedScene: ...
++
++def compose(scene: PreparedScene, options: Options) -> Result: ...
++
++def load(path: str | os.PathLike, max_side: int = 0) -> Annotated[NDArray[numpy.uint8], dict(shape=(None, None, None), order='C', writable=False)]: ...
++
++def capabilities() -> dict: ...
+--- /dev/null
++++ b/python/stitchkit/benchmark.py
+@@ -0,0 +1,112 @@
++"""Small, reusable measurement primitives; plotting stays outside the native API.
++
++No pandas or plotting dependency is imported here. Timed regions contain only the
++public native call, not disk I/O, JSON parsing, comparisons, or plotting. A scope
++named 'prepared' deliberately excludes preparation and must not be presented as
++an end-to-end latency. Wall time includes the Python adapter and input snapshots.
++"""
++from __future__ import annotations
++from dataclasses import dataclass
++from time import perf_counter_ns, process_time_ns
++from typing import Any, Sequence
++import numpy as np
++from numpy.typing import NDArray
++from . import Options, Result, compose, prepare, report, stitch
++
++METHODS = ("rew", "niswgsp", "gesgsp")
++SCOPES = ("end_to_end", "prepared")
++
++@dataclass
++class BenchmarkRun:
++    records: list[dict[str, Any]]
++    outputs: dict[str, Result]
++    preparation: dict[str, Any]
++
++
++def benchmark_images(images: Sequence[NDArray[np.uint8]], *, case: str,
++                     options: Options | None = None, repeats: int = 5,
++                     warmups: int = 1, seed: int = 314159) -> BenchmarkRun:
++    """Interleave all method/scope combinations after untimed warmups.
++
++    Five repeats are an exploratory comparison, not a precise tail-latency or
++    statistical significance estimate. Input order and algorithm seed are fixed;
++    only measurement order is randomized. Output equality is checked outside the
++    timed region on every repeat to catch state leakage and reuse regressions.
++    """
++    if isinstance(repeats, bool) or not isinstance(repeats, int) or repeats < 1:
++        raise ValueError("repeats must be a positive integer")
++    if isinstance(warmups, bool) or not isinstance(warmups, int) or warmups < 0:
++        raise ValueError("warmups must be a nonnegative integer")
++    base = options if options is not None else Options()
++    started = perf_counter_ns()
++    scene = prepare(images, base)
++    preparation = {"case": case, "prepare_wall_ms": (perf_counter_ns()-started)/1e6,
++                   "registration_ms": scene.registration_ms,
++                   "feature_extractions": scene.feature_extractions,
++                   "images": scene.image_count,
++                   "input_bytes": sum(a.nbytes for a in images)}
++    configs = {method: base.with_updates(method=method) for method in METHODS}
++    jobs = [(method, scope) for method in METHODS for scope in SCOPES]
++    def invoke(method: str, scope: str) -> Result:
++        return stitch(images, configs[method]) if scope == "end_to_end" else compose(scene, configs[method])
++    for _ in range(warmups):
++        for method, scope in jobs:
++            invoke(method, scope)
++    rng = np.random.default_rng(seed)
++    records: list[dict[str, Any]] = []
++    outputs: dict[str, Result] = {}
++    for repeat in range(repeats):
++        for index in rng.permutation(len(jobs)):
++            method, scope = jobs[int(index)]
++            cpu_start, wall_start = process_time_ns(), perf_counter_ns()
++            result = invoke(method, scope)
++            wall_ms = (perf_counter_ns()-wall_start)/1e6
++            cpu_ms = (process_time_ns()-cpu_start)/1e6
++            d = report(result)
++            if method in outputs:
++                if not np.array_equal(result.image, outputs[method].image) or not np.array_equal(result.mask, outputs[method].mask):
++                    raise RuntimeError(f"Non-deterministic or reuse-mismatched output: {case}/{method}/{scope}")
++            else:
++                outputs[method] = result
++            record = {"case": case, "method": method, "scope": scope,
++                      "repeat": repeat, "execution_order": len(records), "wall_ms": wall_ms,
++                      "process_cpu_ms": cpu_ms, "prepare_wall_ms": preparation["prepare_wall_ms"],
++                      "registration_reused": d["registration_reused"],
++                      "feature_extractions": d["feature_extractions"],
++                      "actual_device": d["actual_device"], "feature_matches": d["feature_matches"],
++                      "fitted_alignment_rmse_px": d["alignment_rmse_after"],
++                      "structure_equations": d["structure_equations"],
++                      "output_width": d["width"], "output_height": d["height"],
++                      "valid_pixels": d["valid_pixels"]}
++            record.update({f"{name}_ms": value for name, value in d["timing_ms"].items()})
++            records.append(record)
++    return BenchmarkRun(records, outputs, preparation)
++
++
++def reference_metrics(result: Result, truth: NDArray[np.uint8], *, border: int = 3) -> dict[str, float | int]:
++    """RGB RMSE on covered reference pixels PLUS reference-domain coverage.
++
++    The panorama and truth must share the first-image coordinate frame. We do not
++    align the output to the truth after stitching; doing so would hide geometric
++    errors. Integer origins are enforced. Coverage is reported separately so that
++    a small surviving patch cannot masquerade as a high-quality full panorama.
++    """
++    if not isinstance(truth, np.ndarray) or truth.dtype != np.uint8 or truth.ndim != 3 or truth.shape[2] != 3:
++        raise TypeError("truth must be RGB uint8")
++    if isinstance(border, bool) or not isinstance(border, int) or border < 0 or 2*border >= min(truth.shape[:2]):
++        raise ValueError("border does not define a nonempty evaluation region")
++    ox, oy = result.origin
++    if abs(ox-round(ox)) > 1e-6 or abs(oy-round(oy)) > 1e-6:
++        raise ValueError("Noninteger origin requires an explicit resampling protocol")
++    h,w=truth.shape[:2]
++    yy,xx=np.mgrid[border:h-border,border:w-border]
++    px,py=xx-int(round(ox)),yy-int(round(oy))
++    image,mask=result.image,result.mask
++    inside=(px>=0)&(py>=0)&(px<image.shape[1])&(py<image.shape[0])
++    safe_x=np.clip(px,0,image.shape[1]-1);safe_y=np.clip(py,0,image.shape[0]-1)
++    valid=inside & (mask[safe_y,safe_x] > 0)
++    count=int(valid.sum()); support=int(valid.size)
++    if not count:raise ValueError("No valid pixels in the reference domain")
++    delta=image[safe_y[valid],safe_x[valid]].astype(np.float64)-truth[yy[valid],xx[valid]].astype(np.float64)
++    return {"rgb_rmse_255":float(np.sqrt(np.mean(delta*delta))),
++            "coverage_fraction":count/support,"covered_pixels":count,"reference_pixels":support}
+--- /dev/null
++++ b/python_tests/test_binding.py
+@@ -0,0 +1,207 @@
++from __future__ import annotations
++import dataclasses
++import gc
++import json
++from pathlib import Path
++import subprocess
++import threading
++import time
++from concurrent.futures import ThreadPoolExecutor
++
++import numpy as np
++import pytest
++import stitchkit as sk
++
++ROOT = Path(__file__).resolve().parents[1]
++ASSETS = ROOT / "tests/assets"
++
++@pytest.fixture(scope="module")
++def pair():
++    return [sk.load(ASSETS / "synthetic/view0.png"), sk.load(ASSETS / "synthetic/view1.png")]
++
++@pytest.fixture(scope="module")
++def prepared(pair):
++    return sk.prepare(pair)
++
++
++def test_capabilities():
++    c = sk.capabilities()
++    assert c["version"] == "0.2.0"
++    assert c["nanobind"] == "2.15.0"
++    assert isinstance(c["cuda_available"], bool)
++
++
++def test_immutable_options():
++    o = sk.Options()
++    with pytest.raises(dataclasses.FrozenInstanceError):
++        o.grid_size = 40
++    assert o.with_updates(grid_size=40).grid_size == 40
++    assert o.grid_size == 32
++    assert json.loads(json.dumps(o.as_dict()))["device"] == "cpu"
++
++@pytest.mark.parametrize("changes", [
++    {"method":"invalid"}, {"device":"gpu"}, {"structures":"not-a-detector"},
++    {"grid_size":0}, {"ratio_threshold":float("nan")}, {"tps_lambda":-1},
++    {"max_features":False}, {"seed":1.2}, {"use_apap":1}, {"feather_width":float("inf")},
++    {"lineae_device":"invalid"}, {"lineae_variant":10}, {"lineae_model":4},
++])
++def test_invalid_options(changes):
++    with pytest.raises((ValueError, TypeError, RuntimeError)):
++        sk.Options(**changes)
++
++@pytest.mark.parametrize("bad", [
++    np.zeros((8,8,3),dtype=float), np.zeros((8,8,4),dtype=np.uint8),
++    np.zeros((8,8),dtype=np.uint8), np.zeros((0,8,3),dtype=np.uint8),
++    np.zeros((1,8,3),dtype=np.uint8), "not-array",
++])
++def test_input_contract(bad, pair):
++    with pytest.raises((ValueError, TypeError)):
++        sk.stitch([bad,pair[1]])
++
++
++def test_single_array_rejected(pair):
++    with pytest.raises(TypeError): sk.stitch(pair[0])
++    with pytest.raises(ValueError): sk.stitch([pair[0]])
++    with pytest.raises(ValueError): sk.stitch([pair[0]]*17)
++
++
++def test_output_lifetime_and_readonly(prepared):
++    result=sk.compose(prepared,sk.Options(method="rew"))
++    rgb,mask=result.image,result.mask
++    expected_rgb,expected_mask=rgb.copy(),mask.copy()
++    assert not rgb.flags.writeable and not mask.flags.writeable
++    with pytest.raises(ValueError): rgb[0,0,0]=2
++    with pytest.raises(ValueError): rgb.setflags(write=True)
++    del result
++    gc.collect()
++    np.testing.assert_array_equal(rgb,expected_rgb)
++    np.testing.assert_array_equal(mask,expected_mask)
++    # Memory views must also retain the owner rather than borrowing a dead vector.
++    view=memoryview(rgb);del rgb;gc.collect()
++    assert view.shape==expected_rgb.shape
++
++
++def test_prepare_snapshot_independent(pair):
++    originals=[a.copy() for a in pair]
++    options=sk.Options(method="rew")
++    scene=sk.prepare(originals,options)
++    reference=sk.compose(scene,options).image.copy()
++    for a in originals:a.fill(0)
++    del originals;gc.collect()
++    np.testing.assert_array_equal(sk.compose(scene,options).image,reference)
++    assert scene.image_count==2 and scene.feature_extractions==2
++
++
++def test_noncontiguous_inputs(pair):
++    # Same pixels, a larger row stride; wrapper must explicitly copy, not reinterpret.
++    padded=[]
++    for a in pair:
++        target=np.zeros((a.shape[0],a.shape[1]*2,3),dtype=np.uint8)
++        target[:,::2]=a;padded.append(target[:,::2])
++    o=sk.Options(method="rew")
++    np.testing.assert_array_equal(sk.stitch(padded,o).image,sk.stitch(pair,o).image)
++
++
++def test_prepared_configuration_key(prepared):
++    with pytest.raises(sk.StitchError,match="Registration options"):
++        sk.compose(prepared,sk.Options(seed=10))
++    with pytest.raises(TypeError):sk.compose(object())
++
++@pytest.mark.parametrize("method",["rew","niswgsp","gesgsp"])
++def test_direct_prepared_equal(method,pair,prepared):
++    o=sk.Options(method=method)
++    direct,reused=sk.stitch(pair,o),sk.compose(prepared,o)
++    np.testing.assert_array_equal(direct.image,reused.image)
++    np.testing.assert_array_equal(direct.mask,reused.mask)
++    d,r=sk.report(direct),sk.report(reused)
++    assert d["schema_version"]==2
++    assert not d["registration_reused"] and d["feature_extractions"]==2
++    assert r["registration_reused"] and r["feature_extractions"]==0
++    assert r["timing_ms"]["registration"]==0 and r["prepared_registration_ms"]>0
++    assert d["timing_ms"]["total"] >= sum(d["timing_ms"][k] for k in ("registration","structure","geometry","render"))
++    assert (r["structure_equations"]>0) == (method=="gesgsp")
++
++
++def test_chain_feature_reuse(pair):
++    scene=sk.prepare(pair+[sk.load(ASSETS/"synthetic/view2.png")])
++    assert scene.feature_extractions==3 and scene.image_count==3
++
++
++def test_gil_released(prepared):
++    pulses=[]; stop=threading.Event(); ready=threading.Event()
++    def heartbeat():
++        ready.set()
++        while not stop.is_set():
++            pulses.append(time.perf_counter());time.sleep(.002)
++    worker=threading.Thread(target=heartbeat);worker.start();ready.wait()
++    begin=time.perf_counter()
++    try:sk.compose(prepared,sk.Options(method="gesgsp"))
++    finally:
++        end=time.perf_counter();stop.set();worker.join()
++    assert end-begin>.05, "Test work was too small to discriminate GIL release"
++    assert any(begin+.015<t<end-.015 for t in pulses), "No Python heartbeat during native computation"
++
++
++def test_concurrent_prepared_reads(prepared):
++    o=sk.Options(method="rew")
++    expected=sk.compose(prepared,o).image.copy()
++    with ThreadPoolExecutor(max_workers=2) as executor:
++        images=list(executor.map(lambda _:sk.compose(prepared,o).image,[0,1]))
++    for image in images:np.testing.assert_array_equal(image,expected)
++
++
++def test_explicit_device_behavior(prepared):
++    auto=sk.report(sk.compose(prepared,sk.Options(method="rew",device="auto")))
++    assert auto["actual_device"] in ("cpu","cuda")
++    if not sk.capabilities()["cuda_available"]:
++        with pytest.raises(sk.StitchError,match="CUDA"):
++            sk.compose(prepared,sk.Options(device="cuda"))
++
++
++def test_load_errors(tmp_path):
++    with pytest.raises(sk.StitchError):sk.load(tmp_path/"missing.png")
++    corrupt=tmp_path/"broken.png";corrupt.write_bytes(b"invalid PNG")
++    with pytest.raises(sk.StitchError):sk.load(corrupt)
++    with pytest.raises(TypeError):sk.load(corrupt,max_side=False)
++
++
++def test_save_png_and_unicode_path(prepared,tmp_path):
++    from PIL import Image
++    r=sk.compose(prepared,sk.Options(method="rew"))
++    path=tmp_path/"画像_試験.png";r.save(path)
++    rgba=np.asarray(Image.open(path).convert("RGBA"))
++    np.testing.assert_array_equal(rgba[...,:3],r.image)
++    np.testing.assert_array_equal(rgba[...,3],r.mask)
++
++
++def test_cli_native_parity(pair,tmp_path):
++    from PIL import Image
++    cli=ROOT/"build/release/stitch"
++    if not cli.exists():pytest.skip("Native CLI not built in this checkout")
++    target=tmp_path/"cli.png"
++    subprocess.run([str(cli),"--method","rew","--device","cpu","--max-side","400","--output",str(target),
++                    str(ASSETS/"synthetic/view0.png"),str(ASSETS/"synthetic/view1.png")],check=True,capture_output=True)
++    r=sk.stitch(pair,sk.Options(method="rew"))
++    actual=np.asarray(Image.open(target))
++    np.testing.assert_array_equal(actual[...,:3],r.image)
++    np.testing.assert_array_equal(actual[...,3],r.mask)
++
++
++def test_benchmark_contract(pair):
++    from stitchkit.benchmark import benchmark_images, reference_metrics
++    for bad in (0,True,1.2):
++        with pytest.raises(ValueError):benchmark_images(pair,case="x",repeats=bad)
++    for bad in (-1,True):
++        with pytest.raises(ValueError):benchmark_images(pair,case="x",warmups=bad)
++    result=sk.stitch(pair,sk.Options(method="rew"))
++    truth=sk.load(ASSETS/"synthetic/pair_truth.png")
++    metrics=reference_metrics(result,truth)
++    assert metrics["coverage_fraction"] > .985 and metrics["rgb_rmse_255"] < 6
++    with pytest.raises(ValueError):reference_metrics(result,truth,border=200)
++
++
++def test_falsy_options_are_not_silently_defaulted(pair,prepared):
++    for value in (False,0,"",{},object()):
++        for function,argument in ((sk.stitch,pair),(sk.prepare,pair),(sk.compose,prepared)):
++            with pytest.raises(TypeError,match="options"):
++                function(argument,value)
+--- a/src/features.cpp
++++ b/src/features.cpp
+@@ -98,15 +98,8 @@
+             second = d;
+     }
+ };
+-class SiftMatcher final : public IFeatureMatcher {
+-  public:
+-    PairRegistration match(const Image& source, const Image& target,
+-                           const Options& options) const override {
+-        options.validate();
+-        source.validate();
+-        target.validate();
+-        const auto a = features(source, options.max_features),
+-                   b = features(target, options.max_features);
++PairRegistration match_features(const std::vector<Feature>& a,
++                                const std::vector<Feature>& b, const Options& options) {
+         if (a.size() < 2 || b.size() < 2)
+             throw Error("Insufficient SIFT features; input may be blank or too small");
+         std::vector<Nearest> ab(a.size()), ba(b.size());
+@@ -138,9 +131,45 @@
+                 matches.push_back({p, q, 1.0});
+         }
+         return detail::robust_register(std::move(matches), options);
++}
++class SiftMatcher final : public IFeatureMatcher {
++  public:
++    PairRegistration match(const Image& source, const Image& target,
++                           const Options& options) const override {
++        options.validate();
++        source.validate();
++        target.validate();
++        return match_features(features(source, options.max_features),
++                              features(target, options.max_features), options);
++    }
++    MatchBatch match_sequence(const std::vector<Image>& images,
++                              const Options& options) const override {
++        options.validate();
++        if (images.size() < 2 || images.size() > 16)
++            throw Error("Expected 2 to 16 images");
++        for (const auto& image : images)
++            image.validate();
++        MatchBatch batch;
++        batch.feature_extractions = static_cast<int>(images.size());
++        auto previous = features(images.front(), options.max_features);
++        for (std::size_t i = 1; i < images.size(); ++i) {
++            auto current = features(images[i], options.max_features);
++            batch.pairs.push_back(match_features(current, previous, options));
++            previous = std::move(current); // Keep at most two descriptor sets alive.
++        }
++        return batch;
+     }
+ };
+ } // namespace
++MatchBatch IFeatureMatcher::match_sequence(const std::vector<Image>& images,
++                                           const Options& options) const {
++    if (images.size() < 2 || images.size() > 16)
++        throw Error("Expected 2 to 16 images");
++    MatchBatch batch;
++    for (std::size_t i = 1; i < images.size(); ++i)
++        batch.pairs.push_back(match(images[i], images[i - 1], options));
++    return batch;
++}
+ std::unique_ptr<IFeatureMatcher> make_sift_matcher() {
+     return std::make_unique<SiftMatcher>();
+ }
+--- a/src/io.cpp
++++ b/src/io.cpp
+@@ -31,28 +31,6 @@
+ void parents(const std::filesystem::path& p) {
+     if (!p.parent_path().empty())
+         std::filesystem::create_directories(p.parent_path());
+-}
+-std::string escape(const std::string& s) {
+-    std::string out = "\"";
+-    for (unsigned char c : s) {
+-        if (c == '"' || c == '\\') {
+-            out += '\\';
+-            out += static_cast<char>(c);
+-        } else if (c == '\n')
+-            out += "\\n";
+-        else if (c == '\r')
+-            out += "\\r";
+-        else if (c == '\t')
+-            out += "\\t";
+-        else if (c < 32) {
+-            const char* hex = "0123456789abcdef";
+-            out += "\\u00";
+-            out += hex[c >> 4];
+-            out += hex[c & 15];
+-        } else
+-            out += static_cast<char>(c);
+-    }
+-    return out + '"';
+ }
+ } // namespace
+ Image read_image(const std::filesystem::path& path) {
+@@ -149,69 +127,5 @@
+     return resize_image(input, {std::max(2, int(std::lround(input.width * scale))),
+                                 std::max(2, int(std::lround(input.height * scale)))});
+ }
+-void write_report(const std::filesystem::path& path, const Result& r) {
+-    parents(path);
+-    std::ofstream f(path);
+-    if (!f)
+-        throw Error("Cannot write report: " + path.u8string());
+-    const auto& d = r.diagnostics;
+-    f << std::setprecision(12)
+-      << "{\n  \"schema_version\": 1,\n  \"version\": " << escape(version())
+-      << ",\n  \"method\": " << escape(d.method)
+-      << ",\n  \"requested_device\": " << escape(d.requested_device)
+-      << ",\n  \"actual_device\": " << escape(d.actual_device)
+-      << ",\n  \"line_device\": " << escape(d.line_device) << ",\n  \"width\": " << r.image.width
+-      << ",\n  \"height\": " << r.image.height << ",\n  \"origin\": [" << r.canvas.origin.x << ", "
+-      << r.canvas.origin.y << "]"
+-      << ",\n  \"valid_pixels\": " << std::count(r.mask.begin(), r.mask.end(), std::uint8_t(255))
+-      << ",\n  \"feature_matches\": " << d.feature_matches
+-      << ",\n  \"dense_matches\": " << d.dense_matches << ",\n  \"structures\": " << d.structures
+-      << ",\n  \"structure_equations\": " << d.structure_equations
+-      << ",\n  \"tps_controls\": " << d.tps_controls << ",\n  \"equations\": " << d.equations
+-      << ",\n  \"unknowns\": " << d.unknowns
+-      << ",\n  \"alignment_rmse_before\": " << d.alignment_rmse_before
+-      << ",\n  \"alignment_rmse_after\": " << d.alignment_rmse_after
+-      << ",\n  \"solver_relative_residual\": " << d.solver_relative_residual
+-      << ",\n  \"timing_ms\": {\"registration\": " << d.registration_ms
+-      << ", \"geometry\": " << d.geometry_ms << ", \"render\": " << d.render_ms
+-      << "},\n  \"warnings\": [";
+-    for (std::size_t i = 0; i < d.warnings.size(); ++i) {
+-        if (i)
+-            f << ", ";
+-        f << escape(d.warnings[i]);
+-    }
+-    f << "],\n  \"processed_input_sizes\": [";
+-    for (std::size_t i = 0; i < d.input_sizes.size(); ++i) {
+-        if (i)
+-            f << ", ";
+-        f << "[" << d.input_sizes[i].width << ", " << d.input_sizes[i].height << "]";
+-    }
+-    const auto& o = d.options;
+-    f << "],\n  \"options\": {"
+-      << "\"grid_size\":" << o.grid_size << ",\"max_features\":" << o.max_features
+-      << ",\"ratio_threshold\":" << o.ratio_threshold
+-      << ",\"ransac_threshold\":" << o.ransac_threshold
+-      << ",\"ransac_iterations\":" << o.ransac_iterations
+-      << ",\"minimum_matches\":" << o.minimum_matches << ",\"seed\":" << o.seed
+-      << ",\"use_apap\":" << (o.use_apap ? "true" : "false") << ",\"apap_sigma\":" << o.apap_sigma
+-      << ",\"alignment_weight\":" << o.alignment_weight
+-      << ",\"local_similarity_weight\":" << o.local_similarity_weight
+-      << ",\"global_beta\":" << o.global_beta << ",\"global_gamma\":" << o.global_gamma
+-      << ",\"structure_weight\":" << o.structure_weight << ",\"tps_lambda\":" << o.tps_lambda
+-      << ",\"max_tps_controls\":" << o.max_tps_controls
+-      << ",\"max_structures\":" << o.max_structures << ",\"feather_width\":" << o.feather_width
+-      << ",\"max_canvas_pixels\":" << o.max_canvas_pixels << ",\"structure_detector\":"
+-      << escape(o.structures == StructureMode::lineae  ? "lineae"
+-                : o.structures == StructureMode::edges ? "edges"
+-                                                       : "none")
+-      << ",\"lineae_variant\":" << escape(o.lineae_variant)
+-      << ",\"lineae_threshold\":" << o.lineae_threshold << "}\n}\n";
+-
+-    f.flush();
+-    if (!f)
+-        throw Error("Report write failed");
+-}
+-std::string version() {
+-    return "0.1.0";
+-}
++std::string version() { return STITCHKIT_VERSION; }
+ } // namespace stitchkit
+--- a/src/raster.cpp
++++ b/src/raster.cpp
+@@ -105,6 +105,7 @@
+     return plan;
+ }
+ void validate_plan(const std::vector<Image>& images, const WarpPlan& plan, const Options& o) {
++    o.validate();
+     if (images.empty() || plan.canvas.width < 2 || plan.canvas.height < 2 || plan.maps.size() != images.size() ||
+         !finite(plan.canvas.origin))
+         throw Error("Invalid warp plan");
+@@ -169,6 +170,7 @@
+ }
+ #endif
+ std::unique_ptr<IRenderer> make_renderer(Device device, std::vector<std::string>& warnings) {
++    (void)to_string(device); // Reject invalid enum values instead of silently selecting auto.
+     if (device == Device::cpu)
+         return std::make_unique<CpuRenderer>();
+ #ifdef STITCHKIT_WITH_CUDA
+--- /dev/null
++++ b/src/report.cpp
+@@ -0,0 +1,105 @@
++#include "stitchkit/stitcher.hpp"
++#include <algorithm>
++#include <fstream>
++#include <iomanip>
++#include <locale>
++#include <sstream>
++
++namespace stitchkit {
++namespace {
++std::string escape(const std::string& s) {
++    std::string out = "\"";
++    for (unsigned char c : s) {
++        if (c == '"' || c == '\\') {
++            out += '\\';
++            out += static_cast<char>(c);
++        } else if (c == '\n')
++            out += "\\n";
++        else if (c == '\r')
++            out += "\\r";
++        else if (c == '\t')
++            out += "\\t";
++        else if (c < 32) {
++            const char* hex = "0123456789abcdef";
++            out += "\\u00";
++            out += hex[c >> 4];
++            out += hex[c & 15];
++        } else
++            out += static_cast<char>(c);
++    }
++    return out + '"';
++}
++} // namespace
++std::string report_json(const Result& r) {
++    std::ostringstream f;
++    f.imbue(std::locale::classic());
++    const auto& d = r.diagnostics;
++    f << std::setprecision(12)
++      << "{\n  \"schema_version\": 2,\n  \"version\": " << escape(version())
++      << ",\n  \"method\": " << escape(d.method)
++      << ",\n  \"registration_reused\": " << (d.registration_reused ? "true" : "false")
++      << ",\n  \"feature_extractions\": " << d.feature_extractions
++      << ",\n  \"prepared_registration_ms\": " << d.prepared_registration_ms
++      << ",\n  \"requested_device\": " << escape(d.requested_device)
++      << ",\n  \"actual_device\": " << escape(d.actual_device)
++      << ",\n  \"line_device\": " << escape(d.line_device) << ",\n  \"width\": " << r.image.width
++      << ",\n  \"height\": " << r.image.height << ",\n  \"origin\": [" << r.canvas.origin.x << ", "
++      << r.canvas.origin.y << "]"
++      << ",\n  \"valid_pixels\": " << std::count(r.mask.begin(), r.mask.end(), std::uint8_t(255))
++      << ",\n  \"feature_matches\": " << d.feature_matches
++      << ",\n  \"dense_matches\": " << d.dense_matches << ",\n  \"structures\": " << d.structures
++      << ",\n  \"structure_equations\": " << d.structure_equations
++      << ",\n  \"tps_controls\": " << d.tps_controls << ",\n  \"equations\": " << d.equations
++      << ",\n  \"unknowns\": " << d.unknowns
++      << ",\n  \"alignment_rmse_before\": " << d.alignment_rmse_before
++      << ",\n  \"alignment_rmse_after\": " << d.alignment_rmse_after
++      << ",\n  \"solver_relative_residual\": " << d.solver_relative_residual
++      << ",\n  \"timing_ms\": {\"registration\": " << d.registration_ms
++      << ", \"structure\": " << d.structure_ms << ", \"geometry\": " << d.geometry_ms << ", \"render\": " << d.render_ms << ", \"total\": " << d.total_ms
++      << "},\n  \"warnings\": [";
++    for (std::size_t i = 0; i < d.warnings.size(); ++i) {
++        if (i)
++            f << ", ";
++        f << escape(d.warnings[i]);
++    }
++    f << "],\n  \"processed_input_sizes\": [";
++    for (std::size_t i = 0; i < d.input_sizes.size(); ++i) {
++        if (i)
++            f << ", ";
++        f << "[" << d.input_sizes[i].width << ", " << d.input_sizes[i].height << "]";
++    }
++    const auto& o = d.options;
++    f << "],\n  \"options\": {"
++      << "\"grid_size\":" << o.grid_size << ",\"max_features\":" << o.max_features
++      << ",\"ratio_threshold\":" << o.ratio_threshold
++      << ",\"ransac_threshold\":" << o.ransac_threshold
++      << ",\"ransac_iterations\":" << o.ransac_iterations
++      << ",\"minimum_matches\":" << o.minimum_matches << ",\"seed\":" << o.seed
++      << ",\"use_apap\":" << (o.use_apap ? "true" : "false") << ",\"apap_sigma\":" << o.apap_sigma
++      << ",\"alignment_weight\":" << o.alignment_weight
++      << ",\"local_similarity_weight\":" << o.local_similarity_weight
++      << ",\"global_beta\":" << o.global_beta << ",\"global_gamma\":" << o.global_gamma
++      << ",\"structure_weight\":" << o.structure_weight << ",\"tps_lambda\":" << o.tps_lambda
++      << ",\"max_tps_controls\":" << o.max_tps_controls
++      << ",\"max_structures\":" << o.max_structures << ",\"feather_width\":" << o.feather_width
++      << ",\"max_canvas_pixels\":" << o.max_canvas_pixels << ",\"structure_detector\":"
++      << escape(o.structures == StructureMode::lineae  ? "lineae"
++                : o.structures == StructureMode::edges ? "edges"
++                                                       : "none")
++      << ",\"lineae_variant\":" << escape(o.lineae_variant)
++      << ",\"lineae_threshold\":" << o.lineae_threshold << "}\n}\n";
++
++    return f.str();
++}
++void write_report(const std::filesystem::path& path, const Result& r) {
++    if (!path.parent_path().empty())
++        std::filesystem::create_directories(path.parent_path());
++    std::ofstream f(path);
++    if (!f)
++        throw Error("Cannot write report: " + path.u8string());
++    f << report_json(r);
++    f.flush();
++    if (!f)
++        throw Error("Report write failed");
++}
++} // namespace stitchkit
+--- a/src/solver.cpp
++++ b/src/solver.cpp
+@@ -5,20 +5,30 @@
+ namespace stitchkit {
+ void LeastSquaresProblem::add_row(const std::vector<std::pair<int, double>>& terms, double target,
+                                   double weight) {
+-    if (!std::isfinite(target) || !std::isfinite(weight) || weight < 0)
++    if (columns <= 0 || !std::isfinite(target) || !std::isfinite(weight) || weight < 0)
+         throw Error("Invalid least-squares row");
+     if (weight == 0)
+         return;
+     if (rhs.size() >= 2'000'000)
+         throw Error("Too many least-squares equations");
++    const double weighted_target = target * weight;
++    if (!std::isfinite(weighted_target))
++        throw Error("Weighted least-squares target overflow");
+     const int row = static_cast<int>(rhs.size());
++    std::vector<Coefficient> staged;
++    staged.reserve(terms.size());
+     for (const auto& term : terms) {
+-        if (term.first < 0 || term.first >= columns || !std::isfinite(term.second))
+-            throw Error("Invalid least-squares coefficient");
+-        if (term.second != 0)
+-            coefficients.push_back({row, term.first, term.second * weight});
++        const double value = term.second * weight;
++        if (term.first < 0 || term.first >= columns || !std::isfinite(value))
++            throw Error("Invalid or overflowing least-squares coefficient");
++        if (value != 0)
++            staged.push_back({row, term.first, value});
+     }
+-    rhs.push_back(target * weight);
++    // Allocate before committing either vector. A rejected row cannot poison later rows.
++    rhs.reserve(rhs.size() + 1);
++    coefficients.reserve(coefficients.size() + staged.size());
++    coefficients.insert(coefficients.end(), staged.begin(), staged.end());
++    rhs.push_back(weighted_target);
+ }
+ namespace {
+ class EigenSolver final : public ILeastSquaresSolver {
+--- a/src/stitcher.cpp
++++ b/src/stitcher.cpp
+@@ -1,6 +1,7 @@
+ #include "stitchkit/stitcher.hpp"
+ #include "internal.hpp"
+ #include <chrono>
++#include <tuple>
+ 
+ namespace stitchkit {
+ namespace {
+@@ -8,12 +9,14 @@
+ double milliseconds(Clock::time_point start) {
+     return std::chrono::duration<double, std::milli>(Clock::now() - start).count();
+ }
++auto registration_key(const Options& o) {
++    return std::make_tuple(o.max_features, o.ratio_threshold, o.ransac_threshold,
++                           o.ransac_iterations, o.minimum_matches, o.seed);
++}
+ void check_horizon(const Homography& h, Size size) {
+     double sign = 0;
+-    for (auto p : std::array<Point, 4>{{{0, 0},
+-                                        {double(size.width - 1), 0},
+-                                        {double(size.width - 1), double(size.height - 1)},
+-                                        {0, double(size.height - 1)}}}) {
++    for (auto p : std::array<Point, 4>{{{0, 0}, {double(size.width - 1), 0},
++          {double(size.width - 1), double(size.height - 1)}, {0, double(size.height - 1)}}}) {
+         const double denominator = h.values[6] * p.x + h.values[7] * p.y + h.values[8];
+         if (!std::isfinite(denominator) || std::abs(denominator) < 1e-9 || !finite(h.apply(p)))
+             throw Error("Homography intersects the projective horizon");
+@@ -23,8 +26,21 @@
+     }
+ }
+ } // namespace
++
++struct PreparedScene::State {
++    std::vector<Image> images;
++    Registration registration;
++    Options options;
++    double registration_ms = 0;
++    int feature_extractions = -1;
++};
++PreparedScene::PreparedScene(std::shared_ptr<const State> state) : state_(std::move(state)) {}
++std::size_t PreparedScene::image_count() const { if (!state_) throw Error("Moved-from PreparedScene"); return state_->images.size(); }
++double PreparedScene::registration_ms() const { if (!state_) throw Error("Moved-from PreparedScene"); return state_->registration_ms; }
++int PreparedScene::feature_extractions() const { if (!state_) throw Error("Moved-from PreparedScene"); return state_->feature_extractions; }
++
+ std::unique_ptr<IWarpEstimator> make_warp_estimator(Method method,
+-                                                    std::shared_ptr<ILeastSquaresSolver> solver) {
++                                                  std::shared_ptr<ILeastSquaresSolver> solver) {
+     if (method == Method::rew)
+         return detail::make_rew_estimator();
+     if (method == Method::niswgsp || method == Method::gesgsp)
+@@ -36,71 +52,116 @@
+     options_.validate();
+     if (options_.method == Method::gesgsp && options_.structures != StructureMode::none)
+         detector_ = options_.structures == StructureMode::lineae ? make_lineae_detector(options_)
+-                                                                 : make_edge_detector();
++                                                                : make_edge_detector();
+ }
+ Stitcher::Stitcher(Options options, std::unique_ptr<IFeatureMatcher> matcher,
+                    std::unique_ptr<IStructureDetector> detector,
+-                   std::shared_ptr<ILeastSquaresSolver> solver)
++                   std::shared_ptr<ILeastSquaresSolver> solver,
++                   std::shared_ptr<IRenderer> renderer)
+     : options_(std::move(options)), matcher_(std::move(matcher)), detector_(std::move(detector)),
+-      solver_(std::move(solver)) {
++      solver_(std::move(solver)), renderer_(std::move(renderer)) {
+     options_.validate();
+     if (!matcher_ || !solver_)
+         throw Error("Stitcher requires a matcher and solver");
++    if (options_.method == Method::gesgsp && options_.structures != StructureMode::none && !detector_)
++        throw Error("GES-GSP requires a detector, or explicitly structures=none");
+ }
+-Result Stitcher::stitch(const std::vector<Image>& images) const {
++PreparedScene Stitcher::prepare(std::vector<Image> images) const {
+     if (images.size() < 2 || images.size() > 16)
+         throw Error("Expected 2 to 16 ordered, overlapping images");
+     for (const auto& image : images)
+         image.validate();
+-    Diagnostics diagnostic;
+-    diagnostic.options = options_;
+-    for (const auto& image : images)
+-        diagnostic.input_sizes.push_back(image.size());
+-    diagnostic.method = to_string(options_.method);
+-    diagnostic.requested_device = to_string(options_.device);
+-    auto renderer = make_renderer(options_.device,
+-                                  diagnostic.warnings); // Fail early for explicit unavailable CUDA.
+-    diagnostic.actual_device = renderer->device_name();
+-    diagnostic.line_device = detector_ ? detector_->device_name() : "disabled";
+-    if (options_.device != Device::cpu && diagnostic.actual_device == "cuda")
+-        diagnostic.warnings.push_back("CUDA accelerates sampling/compositing only; feature "
+-                                      "extraction and geometry run on CPU.");
+-    Registration registration;
+-    for (const auto& image : images)
++    auto state = std::make_shared<PreparedScene::State>();
++    state->images = std::move(images);
++    state->options = options_;
++    auto& registration = state->registration;
++    for (const auto& image : state->images)
+         registration.sizes.push_back(image.size());
+-    registration.global_homographies.resize(images.size());
+-    registration.global_similarities.resize(images.size());
+-    auto started = Clock::now();
+-    for (std::size_t i = 1; i < images.size(); ++i) {
+-        auto pair = matcher_->match(images[i], images[i - 1], options_);
++    registration.global_homographies.resize(state->images.size());
++    registration.global_similarities.resize(state->images.size());
++    const auto started = Clock::now();
++    auto batch = matcher_->match_sequence(state->images, options_);
++    if (batch.pairs.size() != state->images.size() - 1)
++        throw Error("Matcher returned an invalid adjacent-pair count");
++    state->feature_extractions = batch.feature_extractions;
++    for (std::size_t i = 1; i < state->images.size(); ++i) {
++        auto pair = std::move(batch.pairs[i - 1]);
+         pair.source_index = i;
+         pair.target_index = i - 1;
+         if (pair.matches.size() < static_cast<std::size_t>(options_.minimum_matches))
+             throw Error("Adjacent pair has insufficient verified correspondences");
+-        check_horizon(pair.homography, images[i].size());
++        check_horizon(pair.homography, state->images[i].size());
++        check_horizon(pair.similarity, state->images[i].size());
+         registration.global_homographies[i] =
+-            compose(registration.global_homographies[i - 1], pair.homography);
++            stitchkit::compose(registration.global_homographies[i - 1], pair.homography);
+         registration.global_similarities[i] =
+-            compose(registration.global_similarities[i - 1], pair.similarity);
+-        check_horizon(registration.global_homographies[i], images[i].size());
+-        diagnostic.feature_matches += static_cast<int>(pair.matches.size());
++            stitchkit::compose(registration.global_similarities[i - 1], pair.similarity);
++        check_horizon(registration.global_homographies[i], state->images[i].size());
+         registration.pairs.push_back(std::move(pair));
+     }
+-    diagnostic.registration_ms = milliseconds(started);
+-    started = Clock::now();
++    state->registration_ms = milliseconds(started);
++    return PreparedScene(std::move(state));
++}
++Result Stitcher::compose_impl(const PreparedScene& scene, IRenderer& renderer,
++                              std::vector<std::string> warnings, bool reused) const {
++    if (!scene.state_)
++        throw Error("Cannot compose a moved-from PreparedScene");
++    if (registration_key(scene.state_->options) != registration_key(options_))
++        throw Error("Registration options differ from the prepared scene; prepare it again");
++    const auto& images = scene.state_->images;
++    const auto& registration = scene.state_->registration;
++    Diagnostics d;
++    d.options = options_;
++    d.input_sizes = registration.sizes;
++    d.method = to_string(options_.method);
++    d.requested_device = to_string(options_.device);
++    d.actual_device = renderer.device_name();
++    d.line_device = detector_ ? detector_->device_name() : "disabled";
++    d.registration_reused = reused;
++    d.prepared_registration_ms = scene.registration_ms();
++    d.registration_ms = reused ? 0.0 : scene.registration_ms();
++    d.feature_extractions = reused ? 0 : scene.feature_extractions();
++    d.warnings = std::move(warnings);
++    for (const auto& pair : registration.pairs)
++        d.feature_matches += static_cast<int>(pair.matches.size());
++    if (d.actual_device == "cuda")
++        d.warnings.push_back("CUDA accelerates sampling/compositing only; features and geometry run on CPU.");
++    auto started = Clock::now();
+     std::vector<std::vector<Structure>> structures(images.size());
+     if (options_.method == Method::gesgsp && detector_) {
+         for (std::size_t i = 0; i < images.size(); ++i)
+             structures[i] = detector_->detect(images[i], options_);
+-        diagnostic.line_device = detector_->device_name();
++        d.line_device = detector_->device_name();
+     }
++    d.structure_ms = milliseconds(started);
++    started = Clock::now();
+     auto estimator = make_warp_estimator(options_.method, solver_);
+-    auto plan = estimator->estimate(registration, structures, options_, diagnostic);
+-    diagnostic.geometry_ms = milliseconds(started);
++    auto plan = estimator->estimate(registration, structures, options_, d);
++    d.geometry_ms = milliseconds(started);
+     started = Clock::now();
+-    auto result = renderer->render(images, plan, options_);
+-    diagnostic.render_ms = milliseconds(started);
+-    result.diagnostics = std::move(diagnostic);
++    auto result = renderer.render(images, plan, options_);
++    d.render_ms = milliseconds(started);
++    result.diagnostics = std::move(d);
++    return result;
++}
++Result Stitcher::compose(const PreparedScene& scene) const {
++    const auto started = Clock::now();
++    std::vector<std::string> warnings;
++    auto owned = renderer_ ? nullptr : make_renderer(options_.device, warnings);
++    auto& renderer = renderer_ ? *renderer_ : *owned;
++    auto result = compose_impl(scene, renderer, std::move(warnings), true);
++    result.diagnostics.total_ms = milliseconds(started);
++    return result;
++}
++Result Stitcher::stitch(std::vector<Image> images) const {
++    const auto started = Clock::now();
++    std::vector<std::string> warnings;
++    // Select the backend before feature extraction, including explicit CUDA failure.
++    auto owned = renderer_ ? nullptr : make_renderer(options_.device, warnings);
++    auto& renderer = renderer_ ? *renderer_ : *owned;
++    const auto scene = prepare(std::move(images));
++    auto result = compose_impl(scene, renderer, std::move(warnings), false);
++    result.diagnostics.total_ms = milliseconds(started);
+     return result;
+ }
+ } // namespace stitchkit
+--- a/src/types.cpp
++++ b/src/types.cpp
+@@ -126,12 +126,13 @@
+     return detail::homography(detail::matrix(a) * detail::matrix(b));
+ }
+ Mesh Mesh::regular(Size size, int cell) {
+-    if (size.width < 2 || size.height < 2 || cell < 1)
+-        throw Error("Invalid mesh dimensions");
++    (void)checked_count(size.width, size.height);
++    if (cell < 1)
++        throw Error("Invalid mesh cell size");
+     Mesh m;
+     m.image_size = size;
+-    m.columns = std::max(1, (size.width - 1 + cell - 1) / cell) + 1;
+-    m.rows = std::max(1, (size.height - 1 + cell - 1) / cell) + 1;
++    m.columns = std::max(1, 1 + (size.width - 2) / cell) + 1;
++    m.rows = std::max(1, 1 + (size.height - 2) / cell) + 1;
+     if (static_cast<std::size_t>(m.columns) * m.rows > 100'000)
+         throw Error("Mesh is too large; increase grid_size");
+     for (int y = 0; y < m.rows; ++y)
+--- /dev/null
++++ b/tests/review_regressions.cpp
+@@ -0,0 +1,146 @@
++#include <stitchkit/stitcher.hpp>
++#include <cmath>
++#include <climits>
++#include <filesystem>
++#include <iostream>
++#include <limits>
++#include <locale>
++#include <memory>
++#include <string>
++#include <utility>
++using namespace stitchkit;
++namespace {
++void check(bool ok, const char* message) { if (!ok) throw Error(message); }
++template <class F> void rejects(F fn) {
++    bool caught = false;
++    try { fn(); } catch (const std::exception&) { caught = true; }
++    check(caught, "Expected exception was not raised");
++}
++void atomic_row() {
++    LeastSquaresProblem p; p.columns = 2;
++    p.add_row({{0, 1}}, 2);
++    const auto count = p.coefficients.size(), rows = p.rhs.size();
++    rejects([&] { p.add_row({{0, 99}, {2, 1}}, 0); });
++    check(p.coefficients.size() == count && p.rhs.size() == rows, "Rejected row changed the matrix");
++    p.add_row({{1, 1}}, 3);
++    const auto x = make_eigen_solver()->solve(p);
++    check(std::abs(x.values[0] - 2) < 1e-12 && std::abs(x.values[1] - 3) < 1e-12,
++          "Recovery after rejected row is incorrect");
++}
++void weighted_overflow() {
++    LeastSquaresProblem p; p.columns = 1;
++    const double large = std::numeric_limits<double>::max();
++    rejects([&] { p.add_row({{0, large}}, 1, 2); });
++    rejects([&] { p.add_row({{0, 1}}, large, 2); });
++    check(p.rhs.empty() && p.coefficients.empty(), "Overflow polluted the matrix");
++    p.add_row({{0, 1}}, 3);
++    check(std::abs(make_eigen_solver()->solve(p).values[0] - 3) < 1e-12, "Recovery failed");
++}
++void mesh_bounds() {
++    const auto m = Mesh::regular({128, 96}, INT_MAX);
++    check(m.columns == 2 && m.rows == 2, "Ceiling division overflow");
++    rejects([] { Mesh::regular({INT_MAX, 2}, 1); });
++    rejects([] { Mesh::regular({32768, 32768}, 1); });
++    rejects([] { Mesh::regular({1, 2}, 4); });
++}
++void renderer_enum() {
++    std::vector<std::string> warnings;
++    rejects([&] { make_renderer(static_cast<Device>(1234), warnings); });
++    check(warnings.empty(), "Invalid device must not silently fall back");
++}
++struct Comma : std::numpunct<char> { char do_decimal_point() const override { return ','; } };
++struct RestoreLocale {
++    std::locale previous = std::locale();
++    ~RestoreLocale() { std::locale::global(previous); }
++};
++void report_locale() {
++    Result r; r.image = Image(2, 2); r.mask.assign(4, 255); r.canvas.width=2; r.canvas.height=2;
++    r.diagnostics.structure_ms=1.25; r.diagnostics.method="rew";
++    RestoreLocale restore;
++    std::locale::global(std::locale(std::locale::classic(), new Comma));
++    const auto json = report_json(r);
++    check(json.find("1.25") != std::string::npos, "JSON inherited a decimal-comma locale");
++    check(json.find("\"schema_version\": 2") != std::string::npos, "Schema version missing");
++}
++std::vector<Image> input(const std::filesystem::path& assets, int count=2) {
++    std::vector<Image> images;
++    for (int i=0;i<count;++i) images.push_back(limit_size(read_image(assets/"synthetic"/("view"+std::to_string(i)+".png")),256));
++    return images;
++}
++void prepared_scene(const std::filesystem::path& assets) {
++    Options o; o.method=Method::rew; o.max_features=700;
++    Stitcher engine(o);
++    auto images=input(assets);
++    const auto direct=engine.stitch(images);
++    auto prepared=engine.prepare(images);
++    check(prepared.image_count()==2 && prepared.feature_extractions()==2, "Preparation counters wrong");
++    images[0].pixels.assign(images[0].pixels.size(),0);
++    const auto reused=engine.compose(prepared);
++    check(direct.image.pixels==reused.image.pixels && direct.mask==reused.mask, "Prepared ownership/parity violated");
++    check(reused.diagnostics.registration_reused && reused.diagnostics.registration_ms==0 &&
++          reused.diagnostics.feature_extractions==0 && reused.diagnostics.prepared_registration_ms>0,
++          "Reused/historical timing not distinguished");
++    auto changed=o; changed.seed++;
++    rejects([&] { Stitcher(changed).compose(prepared); });
++    changed=o; changed.method=Method::niswgsp;
++    check(Stitcher(changed).compose(prepared).diagnostics.method=="niswgsp", "Mode switch failed");
++    auto moved=std::move(prepared);
++    rejects([&] { prepared.image_count(); });
++    rejects([&] { engine.compose(prepared); });
++    check(moved.image_count()==2,"Move lost valid snapshot");
++}
++void batch_features(const std::filesystem::path& assets) {
++    const auto images=input(assets,3);
++    auto matcher=make_sift_matcher(); Options o; o.max_features=700;
++    auto batch=matcher->match_sequence(images,o);
++    check(batch.feature_extractions==3 && batch.pairs.size()==2, "Feature extraction is not once per image");
++    for (std::size_t i=1;i<images.size();++i) {
++        const auto pair=matcher->match(images[i],images[i-1],o);
++        check(pair.matches.size()==batch.pairs[i-1].matches.size(),"Batch matching changed correspondences");
++        for(int j=0;j<9;++j) check(std::abs(pair.homography.values[j]-batch.pairs[i-1].homography.values[j])<1e-12,
++                                  "Batch matching changed the transform");
++    }
++}
++class FakeMatcher final : public IFeatureMatcher {
++ public:
++    PairRegistration match(const Image&,const Image&,const Options&) const override {
++        PairRegistration pair;
++        for (int y=16;y<=64;y+=16) for (int x=16;x<=80;x+=16)
++            pair.matches.push_back({{double(x),double(y)},{double(x),double(y)},1});
++        return pair;
++    }
++};
++class CountingRenderer final : public IRenderer {
++ public:
++    mutable int calls=0;
++    Result render(const std::vector<Image>& images,const WarpPlan& plan,const Options& o) const override {
++        ++calls; std::vector<std::string> warnings;
++        return make_renderer(Device::cpu,warnings)->render(images,plan,o);
++    }
++    std::string device_name() const override { return "test-cpu"; }
++};
++void injection() {
++    Options o; o.method=Method::niswgsp; o.use_apap=false;
++    auto renderer=std::make_shared<CountingRenderer>();
++    Stitcher engine(o,std::make_unique<FakeMatcher>(),nullptr,make_eigen_solver(),renderer);
++    const auto result=engine.stitch({Image(128,96,20),Image(128,96,20)});
++    check(renderer->calls==1 && result.diagnostics.actual_device=="test-cpu","Injected renderer was bypassed");
++    check(result.diagnostics.feature_extractions==-1,"Unknown extraction count was invented");
++}
++}
++int main(int argc,char** argv) {
++    try {
++        if(argc!=3) throw Error("Usage: review_regressions test assets");
++        const std::string name=argv[1];
++        if(name=="atomic_row") atomic_row();
++        else if(name=="weighted_overflow") weighted_overflow();
++        else if(name=="mesh_bounds") mesh_bounds();
++        else if(name=="renderer_enum") renderer_enum();
++        else if(name=="report_locale") report_locale();
++        else if(name=="prepared_scene") prepared_scene(argv[2]);
++        else if(name=="batch_features") batch_features(argv[2]);
++        else if(name=="injection") injection();
++        else throw Error("Unknown test");
++        std::cout<<"PASS "<<name<<'\n'; return 0;
++    } catch(const std::exception& e) {std::cerr<<e.what()<<'\n';return 1;}
++}
+--- /dev/null
++++ b/tools/compare_versions.py
+@@ -0,0 +1,82 @@
++"""Compare two native CLI builds with identical inputs and randomized paired trials.
++
++Requires the notebook dependency group (NumPy, pandas, Pillow). Both executables
++must be built in Release with the same compiler and dependency versions for a
++meaningful code-change comparison. This tool does not enforce that condition.
++"""
++from __future__ import annotations
++
++import argparse
++import json
++from pathlib import Path
++import subprocess
++from time import perf_counter_ns
++
++import numpy as np
++import pandas as pd
++from PIL import Image
++
++
++def main() -> None:
++    root = Path(__file__).resolve().parents[1]
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--baseline", type=Path, required=True, help="Original v0.1 stitch executable")
++    parser.add_argument("--current", type=Path, default=root / "build/release/stitch")
++    parser.add_argument("--output", type=Path, default=root / "results/refactor_comparison")
++    parser.add_argument("--repeats", type=int, default=5)
++    parser.add_argument("--seed", type=int, default=20260929)
++    args = parser.parse_args()
++    if args.repeats < 2:
++        parser.error("--repeats must be at least 2")
++    executables = {"baseline_0.1": args.baseline.resolve(), "refactor_0.2": args.current.resolve()}
++    for executable in executables.values():
++        if not executable.is_file():
++            parser.error(f"Executable not found: {executable}")
++    assets = [root / f"tests/assets/synthetic/view{i}.png" for i in range(3)]
++    for asset in assets:
++        if not asset.is_file():
++            parser.error(f"Test asset not found: {asset}")
++    out = args.output.resolve()
++    out.mkdir(parents=True, exist_ok=True)
++    records: list[dict] = []
++    reference: np.ndarray | None = None
++    rng = np.random.default_rng(args.seed)
++    # Warmup is excluded. Each measured round contains both versions.
++    for repetition in range(-1, args.repeats):
++        for version in rng.permutation(list(executables)):
++            image, report = out / f"{version}.png", out / f"{version}.json"
++            command = [str(executables[version]), "--method", "rew", "--device", "cpu",
++                       "--max-side", "0", "--output", str(image), "--report", str(report),
++                       *(str(path) for path in assets)]
++            start = perf_counter_ns()
++            subprocess.run(command, check=True, capture_output=True, text=True, timeout=300)
++            wall_ms = (perf_counter_ns() - start) / 1e6
++            diagnostics = json.loads(report.read_text(encoding="utf-8"))
++            with Image.open(image) as loaded:
++                pixels = np.asarray(loaded.convert("RGBA")).copy()
++            # Validate every output outside the timed region. Do not drop failures.
++            if reference is None:
++                reference = pixels
++            else:
++                np.testing.assert_array_equal(pixels, reference)
++            if repetition >= 0:
++                records.append({"version": version, "repeat": repetition,
++                                "registration_ms": diagnostics["timing_ms"]["registration"],
++                                "cli_wall_including_io_ms": wall_ms,
++                                "feature_extractions_reported": diagnostics.get("feature_extractions")})
++    frame = pd.DataFrame.from_records(records)
++    frame.to_csv(out / "before_after_raw.csv", index=False)
++    summary = frame.groupby("version")[["registration_ms", "cli_wall_including_io_ms"]].median()
++    summary.to_csv(out / "before_after_medians.csv")
++    protocol = {"method": "rew", "case": "3-image synthetic chain", "warmups": 1,
++                "repeats": args.repeats, "order_seed": args.seed, "output_rgba_identical": True,
++                "notes": ["registration_ms is native stage timing; CLI wall includes process startup and image I/O",
++                          "Use the same compiler, Release configuration, and external libraries for both builds",
++                          "Baseline feature extraction count is not instrumented; do not invent an observed count"]}
++    (out / "protocol.json").write_text(json.dumps(protocol, indent=2) + "\n", encoding="utf-8")
++    print(summary.to_string())
++    print("All output RGBA arrays are identical")
++
++
++if __name__ == "__main__":
++    main()
+--- /dev/null
++++ b/tools/run_notebook.py
+@@ -0,0 +1,58 @@
++"""Execute the notebook with the current uv interpreter and export HTML with embedded outputs."""
++from __future__ import annotations
++import argparse
++import json
++from importlib.metadata import distribution
++import os
++from pathlib import Path
++import sys
++import tempfile
++
++import nbformat
++from nbclient import NotebookClient
++from nbconvert import HTMLExporter
++
++
++def main() -> None:
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--notebook", type=Path, default=Path("notebooks/stitchkit_evaluation.ipynb"))
++    parser.add_argument("--export-only", action="store_true", help="Export an already executed notebook without new measurements")
++    args = parser.parse_args()
++    root = Path(__file__).resolve().parents[1]
++    source = (args.notebook if args.notebook.is_absolute() else root / args.notebook).resolve()
++    # A private kernelspec binds execution to this exact interpreter, not a global kernel.
++    with tempfile.TemporaryDirectory(prefix="stitchkit-kernel-") as folder:
++        base = Path(folder)
++        spec = base / "kernels/stitchkit"
++        spec.mkdir(parents=True)
++        (spec / "kernel.json").write_text(json.dumps({
++            "argv": [sys.executable, "-m", "ipykernel_launcher", "-f", "{connection_file}"],
++            "display_name": "Python (stitchkit)", "language": "python"}))
++        old_path = os.environ.get("JUPYTER_PATH")
++        data_paths = [str(base)]
++        # Also support dependencies inherited from another environment during offline validation.
++        dist = distribution("nbconvert")
++        for entry in dist.files or []:
++            if str(entry).replace("\\", "/").endswith("share/jupyter/nbconvert/templates/lab/conf.json"):
++                data_paths.append(str(dist.locate_file(entry).resolve().parents[3]))
++                break
++        if old_path: data_paths.append(old_path)
++        os.environ["JUPYTER_PATH"] = os.pathsep.join(data_paths)
++        try:
++            nb = nbformat.read(source, as_version=4)
++            if not args.export_only:
++                client = NotebookClient(nb, timeout=600, kernel_name="stitchkit",
++                                        resources={"metadata":{"path":str(root)}}, allow_errors=False)
++                client.execute()
++                nbformat.write(nb, source)
++            exporter = HTMLExporter()
++            exporter.exclude_input_prompt = True
++            body, _ = exporter.from_notebook_node(nb)
++            source.with_suffix(".html").write_text(body, encoding="utf-8")
++        finally:
++            if old_path is None: os.environ.pop("JUPYTER_PATH",None)
++            else: os.environ["JUPYTER_PATH"] = old_path
++    print(f"{source}: HTML exported (new execution: {not args.export_only})")
++
++if __name__ == "__main__":
++    main()
+--- a/vcpkg.json
++++ b/vcpkg.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "stitchkit",
+-  "version-semver": "0.1.0",
++  "version-semver": "0.2.0",
+   "description": "Portable C++ REW / NISwGSP / GES-GSP research implementation",
+   "builtin-baseline": "58845ed63eb19aff55e896ea1f5d51f2a0df5b66",
+   "dependencies": [

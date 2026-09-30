@@ -1,0 +1,88 @@
+$ ctest --preset sanitize -j2 --output-on-failure --output-junit [EPHEMERAL_ROOT]/stitchkit/verification/sanitize_tests.xml
+Test project [EPHEMERAL_ROOT]/stitchkit/build/sanitize
+      Start 31: e2e.gesgsp.library
+      Start 32: e2e.gesgsp.town_hall
+ 1/35 Test #32: e2e.gesgsp.town_hall .............   Passed   41.79 sec
+      Start 33: e2e.gesgsp.ship
+ 2/35 Test #31: e2e.gesgsp.library ...............   Passed   59.55 sec
+      Start 25: e2e.niswgsp.library
+ 3/35 Test #33: e2e.gesgsp.ship ..................   Passed   42.24 sec
+      Start 29: e2e.gesgsp.chain
+ 4/35 Test #25: e2e.niswgsp.library ..............   Passed   32.99 sec
+      Start 27: e2e.niswgsp.ship
+ 5/35 Test #29: e2e.gesgsp.chain .................   Passed   31.03 sec
+      Start 26: e2e.niswgsp.town_hall
+ 6/35 Test #27: e2e.niswgsp.ship .................   Passed   30.67 sec
+      Start 23: e2e.niswgsp.chain
+ 7/35 Test #23: e2e.niswgsp.chain ................   Passed   12.31 sec
+      Start 30: e2e.gesgsp.parallax
+ 8/35 Test #26: e2e.niswgsp.town_hall ............   Passed   23.27 sec
+      Start 34: e2e.cli
+ 9/35 Test #30: e2e.gesgsp.parallax ..............   Passed    9.71 sec
+      Start 28: e2e.gesgsp.translation
+10/35 Test #34: e2e.cli ..........................   Passed    9.64 sec
+      Start 19: e2e.rew.library
+11/35 Test #19: e2e.rew.library ..................   Passed    5.97 sec
+      Start 22: e2e.niswgsp.translation
+12/35 Test #28: e2e.gesgsp.translation ...........   Passed    9.82 sec
+      Start 24: e2e.niswgsp.parallax
+13/35 Test #22: e2e.niswgsp.translation ..........   Passed    5.38 sec
+      Start 20: e2e.rew.town_hall
+14/35 Test #24: e2e.niswgsp.parallax .............   Passed    5.30 sec
+      Start 21: e2e.rew.ship
+15/35 Test #20: e2e.rew.town_hall ................   Passed    4.85 sec
+      Start 17: e2e.rew.chain
+16/35 Test #21: e2e.rew.ship .....................   Passed    4.66 sec
+      Start 16: e2e.rew.translation
+17/35 Test #16: e2e.rew.translation ..............   Passed    2.18 sec
+      Start 18: e2e.rew.parallax
+18/35 Test #17: e2e.rew.chain ....................   Passed    3.96 sec
+      Start  7: unit.geometric_energy
+19/35 Test  #7: unit.geometric_energy ............   Passed    1.13 sec
+      Start 13: unit.failures
+20/35 Test #18: e2e.rew.parallax .................   Passed    2.30 sec
+      Start  6: unit.rew
+21/35 Test #13: unit.failures ....................   Passed    0.58 sec
+      Start  9: unit.io
+22/35 Test  #6: unit.rew .........................   Passed    0.38 sec
+      Start 10: unit.edges
+23/35 Test #10: unit.edges .......................   Passed    0.20 sec
+      Start  5: unit.registration
+24/35 Test  #9: unit.io ..........................   Passed    0.26 sec
+      Start  8: unit.raster
+25/35 Test  #5: unit.registration ................   Passed    0.20 sec
+      Start  4: unit.solver
+26/35 Test  #8: unit.raster ......................   Passed    0.20 sec
+      Start  3: unit.mesh
+27/35 Test  #4: unit.solver ......................   Passed    0.14 sec
+      Start 11: unit.lineae_contract
+28/35 Test  #3: unit.mesh ........................   Passed    0.17 sec
+      Start  2: unit.types
+29/35 Test #11: unit.lineae_contract .............   Passed    0.16 sec
+      Start 12: unit.device_contract
+30/35 Test  #2: unit.types .......................   Passed    0.12 sec
+      Start  1: unit.convolution
+31/35 Test #12: unit.device_contract .............   Passed    0.13 sec
+      Start 35: assets.integrity
+32/35 Test  #1: unit.convolution .................   Passed    0.10 sec
+      Start 14: optional.cuda_parity
+33/35 Test #35: assets.integrity .................   Passed    0.07 sec
+      Start 15: optional.lineae_model
+34/35 Test #14: optional.cuda_parity .............***Skipped   0.10 sec
+35/35 Test #15: optional.lineae_model ............***Skipped   0.10 sec
+
+100% tests passed, 0 tests failed out of 35
+
+Label Time Summary:
+assets      =   0.07 sec*proc (1 test)
+cli         =   9.64 sec*proc (1 test)
+cpu         = 331.75 sec*proc (31 tests)
+e2e         = 337.63 sec*proc (19 tests)
+optional    =   0.20 sec*proc (2 tests)
+unit        =   3.76 sec*proc (13 tests)
+
+Total Test time (real) = 170.88 sec
+
+The following tests did not run:
+	 14 - optional.cuda_parity (Skipped)
+	 15 - optional.lineae_model (Skipped)

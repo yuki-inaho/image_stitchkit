@@ -1,0 +1,2 @@
+$ [EPHEMERAL_ROOT]/stitchkit/build/system/stitch --capabilities
+{"cuda_compiled":false,"cuda_available":false,"lineae_compiled":false}

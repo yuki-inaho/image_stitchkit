@@ -1,0 +1,402 @@
+Test project [EPHEMERAL_ROOT]/stitchkit/build/sanitize
+      Start  1: unit.types
+      Start  2: unit.mesh
+ 1/33 Test  #1: unit.types .......................   Passed    0.13 sec
+      Start  3: unit.solver
+ 2/33 Test  #2: unit.mesh ........................   Passed    0.14 sec
+      Start  4: unit.registration
+ 3/33 Test  #3: unit.solver ......................   Passed    0.15 sec
+      Start  5: unit.rew
+ 4/33 Test  #4: unit.registration ................   Passed    0.21 sec
+      Start  6: unit.geometric_energy
+ 5/33 Test  #5: unit.rew .........................   Passed    0.35 sec
+      Start  7: unit.raster
+ 6/33 Test  #7: unit.raster ......................   Passed    0.14 sec
+      Start  8: unit.io
+ 7/33 Test  #8: unit.io ..........................   Passed    0.23 sec
+      Start  9: unit.edges
+ 8/33 Test  #9: unit.edges .......................   Passed    0.19 sec
+      Start 10: unit.lineae_contract
+ 9/33 Test #10: unit.lineae_contract .............   Passed    0.11 sec
+      Start 11: unit.device_contract
+10/33 Test #11: unit.device_contract .............   Passed    0.12 sec
+      Start 12: unit.failures
+11/33 Test  #6: unit.geometric_energy ............   Passed    1.09 sec
+      Start 13: optional.cuda_parity
+12/33 Test #13: optional.cuda_parity .............***Skipped   0.14 sec
+      Start 14: optional.lineae_model
+13/33 Test #12: unit.failures ....................***Failed    0.20 sec
+[EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22: runtime error: subtraction of unsigned offset from 0x7f38dbf5f800 overflowed to 0x7f38dbf5fa80
+    #0 0x55718985bbd0 in vl_imconvcol_vf [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22
+    #1 0x55718983b8a4 in _vl_sift_smooth [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:805:3
+    #2 0x5571898386ef in vl_sift_process_first_octave [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:1050:5
+    #3 0x5571897cd2fc in stitchkit::(anonymous namespace)::features(stitchkit::Image const&, int) [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:32:18
+    #4 0x5571897cb9de in stitchkit::(anonymous namespace)::SiftMatcher::match(stitchkit::Image const&, stitchkit::Image const&, stitchkit::Options const&) const [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:108:24
+    #5 0x5571897c760b in stitchkit::Stitcher::stitch(std::vector<stitchkit::Image, std::allocator<stitchkit::Image>> const&) const [EPHEMERAL_ROOT]/stitchkit/src/stitcher.cpp:75:31
+    #6 0x55718963f1c9 in operator() [EPHEMERAL_ROOT]/stitchkit/tests/test_main.cpp:312:29
+    #7 0x55718963f1c9 in throws<(lambda at [EPHEMERAL_ROOT]/stitchkit/tests/test_main.cpp:312:12)> [EPHEMERAL_ROOT]/stitchkit/tests/test_main.cpp:28:9
+    #8 0x55718963f1c9 in (anonymous namespace)::test_failures() [EPHEMERAL_ROOT]/stitchkit/tests/test_main.cpp:312:5
+    #9 0x55718962b291 in operator() [SYS]/lib/gcc/x86_64-linux-gnu/14/../../../../include/c++/14/bits/std_function.h:591:9
+    #10 0x55718962b291 in main [EPHEMERAL_ROOT]/stitchkit/tests/test_main.cpp:397:9
+    #11 0x7f38dc581ca7  (/lib/x86_64-linux-gnu/libc.so.6+0x29ca7) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #12 0x7f38dc581d64 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x29d64) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #13 0x557189565b10 in _start ([EPHEMERAL_ROOT]/stitchkit/build/sanitize/tests/stitchkit_tests+0xeeb10)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22 
+
+      Start 15: e2e.rew.translation
+14/33 Test #14: optional.lineae_model ............***Skipped   0.11 sec
+      Start 16: e2e.rew.chain
+15/33 Test #15: e2e.rew.translation ..............***Failed    0.15 sec
+[EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22: runtime error: subtraction of unsigned offset from 0x7f0c53d6e800 overflowed to 0x7f0c53d6ee40
+    #0 0x55a65661ab70 in vl_imconvcol_vf [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22
+    #1 0x55a6565fa844 in _vl_sift_smooth [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:805:3
+    #2 0x55a6565f768f in vl_sift_process_first_octave [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:1050:5
+    #3 0x55a65646222c in stitchkit::(anonymous namespace)::features(stitchkit::Image const&, int) [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:32:18
+    #4 0x55a65646090e in stitchkit::(anonymous namespace)::SiftMatcher::match(stitchkit::Image const&, stitchkit::Image const&, stitchkit::Options const&) const [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:108:24
+    #5 0x55a6564599db in stitchkit::Stitcher::stitch(std::vector<stitchkit::Image, std::allocator<stitchkit::Image>> const&) const [EPHEMERAL_ROOT]/stitchkit/src/stitcher.cpp:75:31
+    #6 0x55a65640ca1e in main [EPHEMERAL_ROOT]/stitchkit/tests/e2e.cpp:45:41
+    #7 0x7f0c571c3ca7  (/lib/x86_64-linux-gnu/libc.so.6+0x29ca7) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #8 0x7f0c571c3d64 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x29d64) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #9 0x55a656346920 in _start ([EPHEMERAL_ROOT]/stitchkit/build/sanitize/tests/stitchkit_e2e+0xe8920)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22 
+
+      Start 17: e2e.rew.parallax
+16/33 Test #16: e2e.rew.chain ....................***Failed    0.15 sec
+[EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22: runtime error: subtraction of unsigned offset from 0x7f7201f6e800 overflowed to 0x7f7201f6ee40
+    #0 0x557784763b70 in vl_imconvcol_vf [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22
+    #1 0x557784743844 in _vl_sift_smooth [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:805:3
+    #2 0x55778474068f in vl_sift_process_first_octave [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:1050:5
+    #3 0x5577845ab22c in stitchkit::(anonymous namespace)::features(stitchkit::Image const&, int) [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:32:18
+    #4 0x5577845a990e in stitchkit::(anonymous namespace)::SiftMatcher::match(stitchkit::Image const&, stitchkit::Image const&, stitchkit::Options const&) const [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:108:24
+    #5 0x5577845a29db in stitchkit::Stitcher::stitch(std::vector<stitchkit::Image, std::allocator<stitchkit::Image>> const&) const [EPHEMERAL_ROOT]/stitchkit/src/stitcher.cpp:75:31
+    #6 0x557784555a1e in main [EPHEMERAL_ROOT]/stitchkit/tests/e2e.cpp:45:41
+    #7 0x7f720548eca7  (/lib/x86_64-linux-gnu/libc.so.6+0x29ca7) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #8 0x7f720548ed64 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x29d64) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #9 0x55778448f920 in _start ([EPHEMERAL_ROOT]/stitchkit/build/sanitize/tests/stitchkit_e2e+0xe8920)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22 
+
+      Start 18: e2e.rew.library
+17/33 Test #17: e2e.rew.parallax .................***Failed    0.15 sec
+[EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22: runtime error: subtraction of unsigned offset from 0x7f766a36e800 overflowed to 0x7f766a36ee40
+    #0 0x560ea6c0cb70 in vl_imconvcol_vf [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22
+    #1 0x560ea6bec844 in _vl_sift_smooth [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:805:3
+    #2 0x560ea6be968f in vl_sift_process_first_octave [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:1050:5
+    #3 0x560ea6a5422c in stitchkit::(anonymous namespace)::features(stitchkit::Image const&, int) [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:32:18
+    #4 0x560ea6a5290e in stitchkit::(anonymous namespace)::SiftMatcher::match(stitchkit::Image const&, stitchkit::Image const&, stitchkit::Options const&) const [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:108:24
+    #5 0x560ea6a4b9db in stitchkit::Stitcher::stitch(std::vector<stitchkit::Image, std::allocator<stitchkit::Image>> const&) const [EPHEMERAL_ROOT]/stitchkit/src/stitcher.cpp:75:31
+    #6 0x560ea69fea1e in main [EPHEMERAL_ROOT]/stitchkit/tests/e2e.cpp:45:41
+    #7 0x7f766d6e1ca7  (/lib/x86_64-linux-gnu/libc.so.6+0x29ca7) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #8 0x7f766d6e1d64 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x29d64) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #9 0x560ea6938920 in _start ([EPHEMERAL_ROOT]/stitchkit/build/sanitize/tests/stitchkit_e2e+0xe8920)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22 
+
+      Start 19: e2e.rew.town_hall
+18/33 Test #18: e2e.rew.library ..................***Failed    0.32 sec
+[EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22: runtime error: subtraction of unsigned offset from 0x7f2515bd4800 overflowed to 0x7f2515bd5200
+    #0 0x5562d7a66b70 in vl_imconvcol_vf [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22
+    #1 0x5562d7a46844 in _vl_sift_smooth [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:805:3
+    #2 0x5562d7a4368f in vl_sift_process_first_octave [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:1050:5
+    #3 0x5562d78ae22c in stitchkit::(anonymous namespace)::features(stitchkit::Image const&, int) [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:32:18
+    #4 0x5562d78ac90e in stitchkit::(anonymous namespace)::SiftMatcher::match(stitchkit::Image const&, stitchkit::Image const&, stitchkit::Options const&) const [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:108:24
+    #5 0x5562d78a59db in stitchkit::Stitcher::stitch(std::vector<stitchkit::Image, std::allocator<stitchkit::Image>> const&) const [EPHEMERAL_ROOT]/stitchkit/src/stitcher.cpp:75:31
+    #6 0x5562d7858a1e in main [EPHEMERAL_ROOT]/stitchkit/tests/e2e.cpp:45:41
+    #7 0x7f2519b53ca7  (/lib/x86_64-linux-gnu/libc.so.6+0x29ca7) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #8 0x7f2519b53d64 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x29d64) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #9 0x5562d7792920 in _start ([EPHEMERAL_ROOT]/stitchkit/build/sanitize/tests/stitchkit_e2e+0xe8920)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22 
+
+      Start 20: e2e.rew.ship
+19/33 Test #19: e2e.rew.town_hall ................***Failed    0.34 sec
+[EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22: runtime error: subtraction of unsigned offset from 0x7f7130e60800 overflowed to 0x7f7130e61200
+    #0 0x561850c2bb70 in vl_imconvcol_vf [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22
+    #1 0x561850c0b844 in _vl_sift_smooth [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:805:3
+    #2 0x561850c0868f in vl_sift_process_first_octave [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:1050:5
+    #3 0x561850a7322c in stitchkit::(anonymous namespace)::features(stitchkit::Image const&, int) [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:32:18
+    #4 0x561850a7190e in stitchkit::(anonymous namespace)::SiftMatcher::match(stitchkit::Image const&, stitchkit::Image const&, stitchkit::Options const&) const [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:108:24
+    #5 0x561850a6a9db in stitchkit::Stitcher::stitch(std::vector<stitchkit::Image, std::allocator<stitchkit::Image>> const&) const [EPHEMERAL_ROOT]/stitchkit/src/stitcher.cpp:75:31
+    #6 0x561850a1da1e in main [EPHEMERAL_ROOT]/stitchkit/tests/e2e.cpp:45:41
+    #7 0x7f7135290ca7  (/lib/x86_64-linux-gnu/libc.so.6+0x29ca7) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #8 0x7f7135290d64 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x29d64) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #9 0x561850957920 in _start ([EPHEMERAL_ROOT]/stitchkit/build/sanitize/tests/stitchkit_e2e+0xe8920)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22 
+
+      Start 21: e2e.niswgsp.translation
+20/33 Test #21: e2e.niswgsp.translation ..........***Failed    0.16 sec
+[EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22: runtime error: subtraction of unsigned offset from 0x7fc498f6e800 overflowed to 0x7fc498f6ee40
+    #0 0x5589a4119b70 in vl_imconvcol_vf [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22
+    #1 0x5589a40f9844 in _vl_sift_smooth [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:805:3
+    #2 0x5589a40f668f in vl_sift_process_first_octave [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:1050:5
+    #3 0x5589a3f6122c in stitchkit::(anonymous namespace)::features(stitchkit::Image const&, int) [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:32:18
+    #4 0x5589a3f5f90e in stitchkit::(anonymous namespace)::SiftMatcher::match(stitchkit::Image const&, stitchkit::Image const&, stitchkit::Options const&) const [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:108:24
+    #5 0x5589a3f589db in stitchkit::Stitcher::stitch(std::vector<stitchkit::Image, std::allocator<stitchkit::Image>> const&) const [EPHEMERAL_ROOT]/stitchkit/src/stitcher.cpp:75:31
+    #6 0x5589a3f0ba1e in main [EPHEMERAL_ROOT]/stitchkit/tests/e2e.cpp:45:41
+    #7 0x7fc49c37aca7  (/lib/x86_64-linux-gnu/libc.so.6+0x29ca7) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #8 0x7fc49c37ad64 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x29d64) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #9 0x5589a3e45920 in _start ([EPHEMERAL_ROOT]/stitchkit/build/sanitize/tests/stitchkit_e2e+0xe8920)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22 
+
+      Start 22: e2e.niswgsp.chain
+21/33 Test #22: e2e.niswgsp.chain ................***Failed    0.18 sec
+[EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22: runtime error: subtraction of unsigned offset from 0x7f7eb556e800 overflowed to 0x7f7eb556ee40
+    #0 0x563b63aeab70 in vl_imconvcol_vf [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22
+    #1 0x563b63aca844 in _vl_sift_smooth [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:805:3
+    #2 0x563b63ac768f in vl_sift_process_first_octave [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:1050:5
+    #3 0x563b6393222c in stitchkit::(anonymous namespace)::features(stitchkit::Image const&, int) [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:32:18
+    #4 0x563b6393090e in stitchkit::(anonymous namespace)::SiftMatcher::match(stitchkit::Image const&, stitchkit::Image const&, stitchkit::Options const&) const [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:108:24
+    #5 0x563b639299db in stitchkit::Stitcher::stitch(std::vector<stitchkit::Image, std::allocator<stitchkit::Image>> const&) const [EPHEMERAL_ROOT]/stitchkit/src/stitcher.cpp:75:31
+    #6 0x563b638dca1e in main [EPHEMERAL_ROOT]/stitchkit/tests/e2e.cpp:45:41
+    #7 0x7f7eb88adca7  (/lib/x86_64-linux-gnu/libc.so.6+0x29ca7) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #8 0x7f7eb88add64 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x29d64) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #9 0x563b63816920 in _start ([EPHEMERAL_ROOT]/stitchkit/build/sanitize/tests/stitchkit_e2e+0xe8920)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22 
+
+      Start 23: e2e.niswgsp.parallax
+22/33 Test #20: e2e.rew.ship .....................***Failed    0.46 sec
+[EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22: runtime error: subtraction of unsigned offset from 0x7f21db225800 overflowed to 0x7f21db226200
+    #0 0x55e5b4f40b70 in vl_imconvcol_vf [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22
+    #1 0x55e5b4f20844 in _vl_sift_smooth [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:805:3
+    #2 0x55e5b4f1d68f in vl_sift_process_first_octave [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:1050:5
+    #3 0x55e5b4d8822c in stitchkit::(anonymous namespace)::features(stitchkit::Image const&, int) [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:32:18
+    #4 0x55e5b4d8690e in stitchkit::(anonymous namespace)::SiftMatcher::match(stitchkit::Image const&, stitchkit::Image const&, stitchkit::Options const&) const [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:108:24
+    #5 0x55e5b4d7f9db in stitchkit::Stitcher::stitch(std::vector<stitchkit::Image, std::allocator<stitchkit::Image>> const&) const [EPHEMERAL_ROOT]/stitchkit/src/stitcher.cpp:75:31
+    #6 0x55e5b4d32a1e in main [EPHEMERAL_ROOT]/stitchkit/tests/e2e.cpp:45:41
+    #7 0x7f21e07ccca7  (/lib/x86_64-linux-gnu/libc.so.6+0x29ca7) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #8 0x7f21e07ccd64 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x29d64) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #9 0x55e5b4c6c920 in _start ([EPHEMERAL_ROOT]/stitchkit/build/sanitize/tests/stitchkit_e2e+0xe8920)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22 
+
+      Start 24: e2e.niswgsp.library
+23/33 Test #23: e2e.niswgsp.parallax .............***Failed    0.17 sec
+[EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22: runtime error: subtraction of unsigned offset from 0x7f92e676e800 overflowed to 0x7f92e676ee40
+    #0 0x55a455b0db70 in vl_imconvcol_vf [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22
+    #1 0x55a455aed844 in _vl_sift_smooth [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:805:3
+    #2 0x55a455aea68f in vl_sift_process_first_octave [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:1050:5
+    #3 0x55a45595522c in stitchkit::(anonymous namespace)::features(stitchkit::Image const&, int) [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:32:18
+    #4 0x55a45595390e in stitchkit::(anonymous namespace)::SiftMatcher::match(stitchkit::Image const&, stitchkit::Image const&, stitchkit::Options const&) const [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:108:24
+    #5 0x55a45594c9db in stitchkit::Stitcher::stitch(std::vector<stitchkit::Image, std::allocator<stitchkit::Image>> const&) const [EPHEMERAL_ROOT]/stitchkit/src/stitcher.cpp:75:31
+    #6 0x55a4558ffa1e in main [EPHEMERAL_ROOT]/stitchkit/tests/e2e.cpp:45:41
+    #7 0x7f92e9c83ca7  (/lib/x86_64-linux-gnu/libc.so.6+0x29ca7) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #8 0x7f92e9c83d64 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x29d64) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #9 0x55a455839920 in _start ([EPHEMERAL_ROOT]/stitchkit/build/sanitize/tests/stitchkit_e2e+0xe8920)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22 
+
+      Start 25: e2e.niswgsp.town_hall
+24/33 Test #24: e2e.niswgsp.library ..............***Failed    0.30 sec
+[EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22: runtime error: subtraction of unsigned offset from 0x7f45b63d4800 overflowed to 0x7f45b63d5200
+    #0 0x563d8339bb70 in vl_imconvcol_vf [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22
+    #1 0x563d8337b844 in _vl_sift_smooth [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:805:3
+    #2 0x563d8337868f in vl_sift_process_first_octave [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:1050:5
+    #3 0x563d831e322c in stitchkit::(anonymous namespace)::features(stitchkit::Image const&, int) [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:32:18
+    #4 0x563d831e190e in stitchkit::(anonymous namespace)::SiftMatcher::match(stitchkit::Image const&, stitchkit::Image const&, stitchkit::Options const&) const [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:108:24
+    #5 0x563d831da9db in stitchkit::Stitcher::stitch(std::vector<stitchkit::Image, std::allocator<stitchkit::Image>> const&) const [EPHEMERAL_ROOT]/stitchkit/src/stitcher.cpp:75:31
+    #6 0x563d8318da1e in main [EPHEMERAL_ROOT]/stitchkit/tests/e2e.cpp:45:41
+    #7 0x7f45ba43cca7  (/lib/x86_64-linux-gnu/libc.so.6+0x29ca7) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #8 0x7f45ba43cd64 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x29d64) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #9 0x563d830c7920 in _start ([EPHEMERAL_ROOT]/stitchkit/build/sanitize/tests/stitchkit_e2e+0xe8920)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22 
+
+      Start 26: e2e.niswgsp.ship
+25/33 Test #25: e2e.niswgsp.town_hall ............***Failed    0.33 sec
+[EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22: runtime error: subtraction of unsigned offset from 0x7f8ab8a60800 overflowed to 0x7f8ab8a61200
+    #0 0x559c7c922b70 in vl_imconvcol_vf [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22
+    #1 0x559c7c902844 in _vl_sift_smooth [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:805:3
+    #2 0x559c7c8ff68f in vl_sift_process_first_octave [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:1050:5
+    #3 0x559c7c76a22c in stitchkit::(anonymous namespace)::features(stitchkit::Image const&, int) [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:32:18
+    #4 0x559c7c76890e in stitchkit::(anonymous namespace)::SiftMatcher::match(stitchkit::Image const&, stitchkit::Image const&, stitchkit::Options const&) const [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:108:24
+    #5 0x559c7c7619db in stitchkit::Stitcher::stitch(std::vector<stitchkit::Image, std::allocator<stitchkit::Image>> const&) const [EPHEMERAL_ROOT]/stitchkit/src/stitcher.cpp:75:31
+    #6 0x559c7c714a1e in main [EPHEMERAL_ROOT]/stitchkit/tests/e2e.cpp:45:41
+    #7 0x7f8abcdb1ca7  (/lib/x86_64-linux-gnu/libc.so.6+0x29ca7) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #8 0x7f8abcdb1d64 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x29d64) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #9 0x559c7c64e920 in _start ([EPHEMERAL_ROOT]/stitchkit/build/sanitize/tests/stitchkit_e2e+0xe8920)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22 
+
+      Start 27: e2e.gesgsp.translation
+26/33 Test #27: e2e.gesgsp.translation ...........***Failed    0.15 sec
+[EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22: runtime error: subtraction of unsigned offset from 0x7ff5ab96e800 overflowed to 0x7ff5ab96ee40
+    #0 0x560d505fcb70 in vl_imconvcol_vf [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22
+    #1 0x560d505dc844 in _vl_sift_smooth [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:805:3
+    #2 0x560d505d968f in vl_sift_process_first_octave [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:1050:5
+    #3 0x560d5044422c in stitchkit::(anonymous namespace)::features(stitchkit::Image const&, int) [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:32:18
+    #4 0x560d5044290e in stitchkit::(anonymous namespace)::SiftMatcher::match(stitchkit::Image const&, stitchkit::Image const&, stitchkit::Options const&) const [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:108:24
+    #5 0x560d5043b9db in stitchkit::Stitcher::stitch(std::vector<stitchkit::Image, std::allocator<stitchkit::Image>> const&) const [EPHEMERAL_ROOT]/stitchkit/src/stitcher.cpp:75:31
+    #6 0x560d503eea1e in main [EPHEMERAL_ROOT]/stitchkit/tests/e2e.cpp:45:41
+    #7 0x7ff5aedc2ca7  (/lib/x86_64-linux-gnu/libc.so.6+0x29ca7) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #8 0x7ff5aedc2d64 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x29d64) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #9 0x560d50328920 in _start ([EPHEMERAL_ROOT]/stitchkit/build/sanitize/tests/stitchkit_e2e+0xe8920)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22 
+
+      Start 28: e2e.gesgsp.chain
+27/33 Test #26: e2e.niswgsp.ship .................***Failed    0.47 sec
+[EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22: runtime error: subtraction of unsigned offset from 0x7f9792536800 overflowed to 0x7f9792537200
+    #0 0x55c7f15b6b70 in vl_imconvcol_vf [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22
+    #1 0x55c7f1596844 in _vl_sift_smooth [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:805:3
+    #2 0x55c7f159368f in vl_sift_process_first_octave [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:1050:5
+    #3 0x55c7f13fe22c in stitchkit::(anonymous namespace)::features(stitchkit::Image const&, int) [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:32:18
+    #4 0x55c7f13fc90e in stitchkit::(anonymous namespace)::SiftMatcher::match(stitchkit::Image const&, stitchkit::Image const&, stitchkit::Options const&) const [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:108:24
+    #5 0x55c7f13f59db in stitchkit::Stitcher::stitch(std::vector<stitchkit::Image, std::allocator<stitchkit::Image>> const&) const [EPHEMERAL_ROOT]/stitchkit/src/stitcher.cpp:75:31
+    #6 0x55c7f13a8a1e in main [EPHEMERAL_ROOT]/stitchkit/tests/e2e.cpp:45:41
+    #7 0x7f9797aecca7  (/lib/x86_64-linux-gnu/libc.so.6+0x29ca7) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #8 0x7f9797aecd64 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x29d64) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #9 0x55c7f12e2920 in _start ([EPHEMERAL_ROOT]/stitchkit/build/sanitize/tests/stitchkit_e2e+0xe8920)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22 
+
+      Start 29: e2e.gesgsp.parallax
+28/33 Test #28: e2e.gesgsp.chain .................***Failed    0.17 sec
+[EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22: runtime error: subtraction of unsigned offset from 0x7f9ba656e800 overflowed to 0x7f9ba656ee40
+    #0 0x55935622bb70 in vl_imconvcol_vf [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22
+    #1 0x55935620b844 in _vl_sift_smooth [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:805:3
+    #2 0x55935620868f in vl_sift_process_first_octave [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:1050:5
+    #3 0x55935607322c in stitchkit::(anonymous namespace)::features(stitchkit::Image const&, int) [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:32:18
+    #4 0x55935607190e in stitchkit::(anonymous namespace)::SiftMatcher::match(stitchkit::Image const&, stitchkit::Image const&, stitchkit::Options const&) const [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:108:24
+    #5 0x55935606a9db in stitchkit::Stitcher::stitch(std::vector<stitchkit::Image, std::allocator<stitchkit::Image>> const&) const [EPHEMERAL_ROOT]/stitchkit/src/stitcher.cpp:75:31
+    #6 0x55935601da1e in main [EPHEMERAL_ROOT]/stitchkit/tests/e2e.cpp:45:41
+    #7 0x7f9ba9a05ca7  (/lib/x86_64-linux-gnu/libc.so.6+0x29ca7) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #8 0x7f9ba9a05d64 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x29d64) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #9 0x559355f57920 in _start ([EPHEMERAL_ROOT]/stitchkit/build/sanitize/tests/stitchkit_e2e+0xe8920)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22 
+
+      Start 30: e2e.gesgsp.library
+29/33 Test #29: e2e.gesgsp.parallax ..............***Failed    0.15 sec
+[EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22: runtime error: subtraction of unsigned offset from 0x7f439716e800 overflowed to 0x7f439716ee40
+    #0 0x5646ae389b70 in vl_imconvcol_vf [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22
+    #1 0x5646ae369844 in _vl_sift_smooth [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:805:3
+    #2 0x5646ae36668f in vl_sift_process_first_octave [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:1050:5
+    #3 0x5646ae1d122c in stitchkit::(anonymous namespace)::features(stitchkit::Image const&, int) [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:32:18
+    #4 0x5646ae1cf90e in stitchkit::(anonymous namespace)::SiftMatcher::match(stitchkit::Image const&, stitchkit::Image const&, stitchkit::Options const&) const [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:108:24
+    #5 0x5646ae1c89db in stitchkit::Stitcher::stitch(std::vector<stitchkit::Image, std::allocator<stitchkit::Image>> const&) const [EPHEMERAL_ROOT]/stitchkit/src/stitcher.cpp:75:31
+    #6 0x5646ae17ba1e in main [EPHEMERAL_ROOT]/stitchkit/tests/e2e.cpp:45:41
+    #7 0x7f439a5f0ca7  (/lib/x86_64-linux-gnu/libc.so.6+0x29ca7) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #8 0x7f439a5f0d64 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x29d64) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #9 0x5646ae0b5920 in _start ([EPHEMERAL_ROOT]/stitchkit/build/sanitize/tests/stitchkit_e2e+0xe8920)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22 
+
+      Start 31: e2e.gesgsp.town_hall
+30/33 Test #30: e2e.gesgsp.library ...............***Failed    0.29 sec
+[EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22: runtime error: subtraction of unsigned offset from 0x7f905bbd4800 overflowed to 0x7f905bbd5200
+    #0 0x560dc8730b70 in vl_imconvcol_vf [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22
+    #1 0x560dc8710844 in _vl_sift_smooth [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:805:3
+    #2 0x560dc870d68f in vl_sift_process_first_octave [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:1050:5
+    #3 0x560dc857822c in stitchkit::(anonymous namespace)::features(stitchkit::Image const&, int) [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:32:18
+    #4 0x560dc857690e in stitchkit::(anonymous namespace)::SiftMatcher::match(stitchkit::Image const&, stitchkit::Image const&, stitchkit::Options const&) const [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:108:24
+    #5 0x560dc856f9db in stitchkit::Stitcher::stitch(std::vector<stitchkit::Image, std::allocator<stitchkit::Image>> const&) const [EPHEMERAL_ROOT]/stitchkit/src/stitcher.cpp:75:31
+    #6 0x560dc8522a1e in main [EPHEMERAL_ROOT]/stitchkit/tests/e2e.cpp:45:41
+    #7 0x7f905fae2ca7  (/lib/x86_64-linux-gnu/libc.so.6+0x29ca7) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #8 0x7f905fae2d64 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x29d64) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #9 0x560dc845c920 in _start ([EPHEMERAL_ROOT]/stitchkit/build/sanitize/tests/stitchkit_e2e+0xe8920)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22 
+
+      Start 32: e2e.gesgsp.ship
+31/33 Test #31: e2e.gesgsp.town_hall .............***Failed    0.30 sec
+[EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22: runtime error: subtraction of unsigned offset from 0x7f42d6a60800 overflowed to 0x7f42d6a61200
+    #0 0x562bd2d2eb70 in vl_imconvcol_vf [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22
+    #1 0x562bd2d0e844 in _vl_sift_smooth [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:805:3
+    #2 0x562bd2d0b68f in vl_sift_process_first_octave [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:1050:5
+    #3 0x562bd2b7622c in stitchkit::(anonymous namespace)::features(stitchkit::Image const&, int) [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:32:18
+    #4 0x562bd2b7490e in stitchkit::(anonymous namespace)::SiftMatcher::match(stitchkit::Image const&, stitchkit::Image const&, stitchkit::Options const&) const [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:108:24
+    #5 0x562bd2b6d9db in stitchkit::Stitcher::stitch(std::vector<stitchkit::Image, std::allocator<stitchkit::Image>> const&) const [EPHEMERAL_ROOT]/stitchkit/src/stitcher.cpp:75:31
+    #6 0x562bd2b20a1e in main [EPHEMERAL_ROOT]/stitchkit/tests/e2e.cpp:45:41
+    #7 0x7f42dadf7ca7  (/lib/x86_64-linux-gnu/libc.so.6+0x29ca7) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #8 0x7f42dadf7d64 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x29d64) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #9 0x562bd2a5a920 in _start ([EPHEMERAL_ROOT]/stitchkit/build/sanitize/tests/stitchkit_e2e+0xe8920)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22 
+
+      Start 33: e2e.cli
+32/33 Test #32: e2e.gesgsp.ship ..................***Failed    0.44 sec
+[EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22: runtime error: subtraction of unsigned offset from 0x7fd60d025800 overflowed to 0x7fd60d026200
+    #0 0x55abeb651b70 in vl_imconvcol_vf [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22
+    #1 0x55abeb631844 in _vl_sift_smooth [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:805:3
+    #2 0x55abeb62e68f in vl_sift_process_first_octave [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:1050:5
+    #3 0x55abeb49922c in stitchkit::(anonymous namespace)::features(stitchkit::Image const&, int) [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:32:18
+    #4 0x55abeb49790e in stitchkit::(anonymous namespace)::SiftMatcher::match(stitchkit::Image const&, stitchkit::Image const&, stitchkit::Options const&) const [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:108:24
+    #5 0x55abeb4909db in stitchkit::Stitcher::stitch(std::vector<stitchkit::Image, std::allocator<stitchkit::Image>> const&) const [EPHEMERAL_ROOT]/stitchkit/src/stitcher.cpp:75:31
+    #6 0x55abeb443a1e in main [EPHEMERAL_ROOT]/stitchkit/tests/e2e.cpp:45:41
+    #7 0x7fd61267dca7  (/lib/x86_64-linux-gnu/libc.so.6+0x29ca7) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #8 0x7fd61267dd64 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x29d64) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+    #9 0x55abeb37d920 in _start ([EPHEMERAL_ROOT]/stitchkit/build/sanitize/tests/stitchkit_e2e+0xe8920)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22 
+
+33/33 Test #33: e2e.cli ..........................***Failed    0.50 sec
+CMake Error at [EPHEMERAL_ROOT]/stitchkit/tests/cli_test.cmake:10 (message):
+  blank: expected exit code 2, got 1:
+  [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22: runtime error:
+  subtraction of unsigned offset from 0x7f0ff0d56800 overflowed to
+  0x7f0ff0d56a80
+
+      #0 0x5622e1ef4700 in vl_imconvcol_vf [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22
+      #1 0x5622e1ed43d4 in _vl_sift_smooth [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:805:3
+      #2 0x5622e1ed121f in vl_sift_process_first_octave [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/sift.c:1050:5
+      #3 0x5622e1d4fedc in stitchkit::(anonymous namespace)::features(stitchkit::Image const&, int) [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:32:18
+      #4 0x5622e1d4e5be in stitchkit::(anonymous namespace)::SiftMatcher::match(stitchkit::Image const&, stitchkit::Image const&, stitchkit::Options const&) const [EPHEMERAL_ROOT]/stitchkit/src/features.cpp:108:24
+      #5 0x5622e1d4916b in stitchkit::Stitcher::stitch(std::vector<stitchkit::Image, std::allocator<stitchkit::Image>> const&) const [EPHEMERAL_ROOT]/stitchkit/src/stitcher.cpp:75:31
+      #6 0x5622e1ce67b9 in main [EPHEMERAL_ROOT]/stitchkit/app/main.cpp:176:32
+      #7 0x7f0ff11cfca7  (/lib/x86_64-linux-gnu/libc.so.6+0x29ca7) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+      #8 0x7f0ff11cfd64 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x29d64) (BuildId: c495b62edadd6c356265942ec1282d98058a7b41)
+      #9 0x5622e1c1f990 in _start ([EPHEMERAL_ROOT]/stitchkit/build/sanitize/stitch+0xe9990)
+
+  
+
+  SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior
+  [EPHEMERAL_ROOT]/stitchkit/third_party/vlfeat/vl/imopv.c:168:22
+
+Call Stack (most recent call first):
+  [EPHEMERAL_ROOT]/stitchkit/tests/cli_test.cmake:19 (expect_failure)
+
+
+
+
+39% tests passed, 20 tests failed out of 33
+
+Label Time Summary:
+cli         =   0.50 sec*proc (1 test)
+cpu         =   7.75 sec*proc (30 tests)
+e2e         =   5.19 sec*proc (19 tests)
+optional    =   0.25 sec*proc (2 tests)
+unit        =   3.06 sec*proc (12 tests)
+
+Total Test time (real) =   4.36 sec
+
+The following tests did not run:
+	 13 - optional.cuda_parity (Skipped)
+	 14 - optional.lineae_model (Skipped)
+
+The following tests FAILED:
+	 12 - unit.failures (Failed)                            cpu unit
+	 15 - e2e.rew.translation (Failed)                      cpu e2e
+	 16 - e2e.rew.chain (Failed)                            cpu e2e
+	 17 - e2e.rew.parallax (Failed)                         cpu e2e
+	 18 - e2e.rew.library (Failed)                          cpu e2e
+	 19 - e2e.rew.town_hall (Failed)                        cpu e2e
+	 20 - e2e.rew.ship (Failed)                             cpu e2e
+	 21 - e2e.niswgsp.translation (Failed)                  cpu e2e
+	 22 - e2e.niswgsp.chain (Failed)                        cpu e2e
+	 23 - e2e.niswgsp.parallax (Failed)                     cpu e2e
+	 24 - e2e.niswgsp.library (Failed)                      cpu e2e
+	 25 - e2e.niswgsp.town_hall (Failed)                    cpu e2e
+	 26 - e2e.niswgsp.ship (Failed)                         cpu e2e
+	 27 - e2e.gesgsp.translation (Failed)                   cpu e2e
+	 28 - e2e.gesgsp.chain (Failed)                         cpu e2e
+	 29 - e2e.gesgsp.parallax (Failed)                      cpu e2e
+	 30 - e2e.gesgsp.library (Failed)                       cpu e2e
+	 31 - e2e.gesgsp.town_hall (Failed)                     cpu e2e
+	 32 - e2e.gesgsp.ship (Failed)                          cpu e2e
+	 33 - e2e.cli (Failed)                                  cli e2e
+Errors while running CTest

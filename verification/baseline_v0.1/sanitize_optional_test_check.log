@@ -1,0 +1,16 @@
+Test project [EPHEMERAL_ROOT]/stitchkit/build/sanitize
+    Start 14: optional.cuda_parity
+1/2 Test #14: optional.cuda_parity .............***Skipped   0.09 sec
+    Start 15: optional.lineae_model
+2/2 Test #15: optional.lineae_model ............***Skipped   0.09 sec
+
+100% tests passed, 0 tests failed out of 2
+
+Label Time Summary:
+optional    =   0.18 sec*proc (2 tests)
+
+Total Test time (real) =   0.19 sec
+
+The following tests did not run:
+	 14 - optional.cuda_parity (Skipped)
+	 15 - optional.lineae_model (Skipped)

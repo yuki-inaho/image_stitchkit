@@ -1,0 +1,20 @@
+name: CUDA parity on an explicitly configured runner
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  cuda:
+    runs-on: [self-hosted, linux, x64, gpu]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake --preset cuda -DCMAKE_CUDA_ARCHITECTURES=native
+      - name: Build
+        run: cmake --build --preset cuda --parallel 2
+      - name: Require a real device
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./build/cuda/stitch --capabilities | grep '"cuda_available":true'
+      - name: Compare actual CPU and CUDA pixels
+        run: ctest --preset cuda -R optional.cuda_parity --output-on-failure

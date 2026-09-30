@@ -1,0 +1,19 @@
+Building wheel...
+*** scikit-build-core 1.1.0 using CMake 3.31.6 (wheel)
+*** Configuring CMake...
+loading initial cache file build/python/cp313-cp313-linux_x86_64/CMakeInit.txt
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: [EPHEMERAL_ROOT]/stitchkit_review/build/python/cp313-cp313-linux_x86_64
+*** Building project with Ninja...
+[1/2] Building CXX object CMakeFiles/_native.dir/bindings/module.cpp.o
+[2/2] Linking CXX shared module _native.cpython-313-x86_64-linux-gnu.so
+*** Installing project into wheel...
+-- Install configuration: "Release"
+-- Installing: [TMP]/tmpvqk6giob/wheel/platlib/stitchkit/_native.cpython-313-x86_64-linux-gnu.so
+-- Installing: [TMP]/tmpvqk6giob/wheel/platlib/stitchkit/licenses/LICENSE
+-- Installing: [TMP]/tmpvqk6giob/wheel/platlib/stitchkit/licenses/THIRD_PARTY_NOTICES.md
+-- Installing: [TMP]/tmpvqk6giob/wheel/platlib/stitchkit/licenses/VLFeat-BSD.txt
+*** Making wheel...
+*** Created stitchkit-0.2.0-cp313-cp313-linux_x86_64.whl
+Successfully built dist/stitchkit-0.2.0-cp313-cp313-linux_x86_64.whl

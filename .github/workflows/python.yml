@@ -1,0 +1,44 @@
+name: Python native extension and notebook
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  python:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.13"]
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 2
+      OMP_NUM_THREADS: 1
+      OPENBLAS_NUM_THREADS: 1
+      MKL_NUM_THREADS: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: sudo apt-get update && sudo apt-get install -y ninja-build libeigen3-dev libpng-dev libjpeg-dev
+      - run: python -m pip install uv==0.10.0
+      # No synthetic lock file: a connected run resolves and emits uv.lock for review.
+      - run: uv sync --extra notebook --group dev
+      - run: cmake -S . -B build/release -G Ninja -DCMAKE_BUILD_TYPE=Release
+      - run: cmake --build build/release --parallel 2
+      - run: ctest --test-dir build/release --output-on-failure --output-junit cpp-tests.xml
+      - run: uv run python -m pytest --junitxml=python-tests.xml
+      - run: uv build
+      - if: matrix.python == '3.13'
+        run: uv run python tools/run_notebook.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: python-${{ matrix.python }}
+          path: |
+            python-tests.xml
+            build/release/cpp-tests.xml
+            uv.lock
+            dist/
+            results/notebook/
+            notebooks/stitchkit_evaluation.ipynb
+            notebooks/stitchkit_evaluation.html

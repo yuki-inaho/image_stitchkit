@@ -1,0 +1,2 @@
+$ [EPHEMERAL_ROOT]/stitchkit/build/consumer/consumer tests/assets/synthetic/view0.png tests/assets/synthetic/view1.png build/consumer/panorama.png
+0.1.0: installed package consumer completed

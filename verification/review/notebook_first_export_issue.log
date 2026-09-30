@@ -1,0 +1,46 @@
+Traceback (most recent call last):
+  File "[PY_ENV]/lib/python3.13/site-packages/traitlets/traitlets.py", line 651, in get
+    value = obj._trait_values[self.name]
+            ~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+KeyError: 'template_paths'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "[EPHEMERAL_ROOT]/stitchkit_review/tools/run_notebook.py", line 47, in <module>
+    main()
+    ~~~~^^
+  File "[EPHEMERAL_ROOT]/stitchkit_review/tools/run_notebook.py", line 37, in main
+    exporter = HTMLExporter()
+  File "[PY_ENV]/lib/python3.13/site-packages/nbconvert/exporters/templateexporter.py", line 354, in __init__
+    super().__init__(config=config, **kw)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "[PY_ENV]/lib/python3.13/site-packages/nbconvert/exporters/exporter.py", line 123, in __init__
+    self._init_preprocessors()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "[PY_ENV]/lib/python3.13/site-packages/nbconvert/exporters/templateexporter.py", line 540, in _init_preprocessors
+    conf = self._get_conf()
+  File "[PY_ENV]/lib/python3.13/site-packages/nbconvert/exporters/templateexporter.py", line 558, in _get_conf
+    for path in map(Path, self.template_paths):
+                          ^^^^^^^^^^^^^^^^^^^
+  File "[PY_ENV]/lib/python3.13/site-packages/traitlets/traitlets.py", line 706, in __get__
+    return self.get(obj, cls)  # type:ignore[return-value]
+           ~~~~~~~~^^^^^^^^^^
+  File "[PY_ENV]/lib/python3.13/site-packages/traitlets/traitlets.py", line 654, in get
+    default = obj.trait_defaults(self.name)
+  File "[PY_ENV]/lib/python3.13/site-packages/traitlets/traitlets.py", line 1905, in trait_defaults
+    return self._get_trait_default_generator(names[0])(self)  # type:ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "[PY_ENV]/lib/python3.13/site-packages/traitlets/traitlets.py", line 1260, in __call__
+    return self.func(*args, **kwargs)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "[PY_ENV]/lib/python3.13/site-packages/nbconvert/exporters/templateexporter.py", line 575, in _template_paths
+    template_names = self.get_template_names()
+  File "[PY_ENV]/lib/python3.13/site-packages/nbconvert/exporters/templateexporter.py", line 669, in get_template_names
+    raise ValueError(msg)
+ValueError: No template sub-directory with name 'lab' found in the following paths:
+	[TMP]/stitchkit-kernel-5_32wi45
+	[EPHEMERAL_ROOT]/stitchkit_review/.venv/share/jupyter
+	[HOME]/.local/share/jupyter
+	[SYS]/local/share/jupyter
+	[SYS]/share/jupyter

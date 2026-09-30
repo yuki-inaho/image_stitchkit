@@ -1,0 +1,11 @@
+  × No solution found when resolving dependencies:
+  ╰─▶ Because nanobind was not found in the cache and stitchkit:dev depends
+      on nanobind==2.15.0, we can conclude that stitchkit:dev's requirements
+      are unsatisfiable.
+      And because your project requires stitchkit:dev, we can conclude that
+      your project's requirements are unsatisfiable.
+
+      hint: Packages were unavailable because the network was disabled. When
+      the network is disabled, registry packages may only be read from the
+      cache.
+uv_lock_exit=1

@@ -1,0 +1,37 @@
+{
+  "name": "stitchkit",
+  "version-semver": "0.2.0",
+  "description": "Portable C++ REW / NISwGSP / GES-GSP research implementation",
+  "builtin-baseline": "58845ed63eb19aff55e896ea1f5d51f2a0df5b66",
+  "dependencies": [
+    "eigen3",
+    "libpng",
+    "libjpeg-turbo"
+  ],
+  "features": {
+    "lineae": {
+      "description": "Optional CPU ONNX Runtime inference for LINEAE",
+      "dependencies": [
+        "onnxruntime"
+      ]
+    },
+    "lineae-cuda": {
+      "description": "Optional CUDA Execution Provider for LINEAE (requires compatible external CUDA/cuDNN)",
+      "dependencies": [
+        {
+          "name": "onnxruntime",
+          "features": [
+            "cuda"
+          ]
+        }
+      ]
+    }
+  },
+  "overrides": [
+    {
+      "name": "eigen3",
+      "version": "3.4.0",
+      "port-version": 5
+    }
+  ]
+}

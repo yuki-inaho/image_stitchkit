@@ -1,0 +1,21 @@
+{
+  "release": {
+    "tests": "35",
+    "failures": "0",
+    "skipped": "2",
+    "time": "25",
+    "timestamp": "2026-09-29T02:07:07"
+  },
+  "sanitize": {
+    "tests": "35",
+    "failures": "0",
+    "skipped": "2",
+    "time": "170",
+    "timestamp": "2026-09-29T02:07:43"
+  },
+  "installed_consumer": "configure, link, and image execution passed",
+  "cuda": "not compiled; parity test skipped",
+  "lineae": "ONNX adapter not compiled; real-model test skipped; pure C++ contract test passed",
+  "vcpkg_restore": "not executed: container network restrictions",
+  "windows_macos": "CI definitions only; not executed"
+}

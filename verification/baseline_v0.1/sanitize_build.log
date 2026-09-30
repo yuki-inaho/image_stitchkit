@@ -1,0 +1,8 @@
+$ cmake --build --preset sanitize -j2
+[1/7] Building CXX object CMakeFiles/stitchkit.dir/src/lineae.cpp.o
+[2/7] Building CXX object CMakeFiles/stitchkit.dir/src/raster.cpp.o
+[3/7] Linking CXX static library libstitchkit.a
+[4/7] Linking CXX executable stitchkit_example
+[5/7] Linking CXX executable stitch
+[6/7] Linking CXX executable tests/stitchkit_tests
+[7/7] Linking CXX executable tests/stitchkit_e2e

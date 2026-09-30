@@ -1,0 +1,16 @@
+{
+  "generator_seed": 42,
+  "image_size": [
+    400,
+    280
+  ],
+  "offsets_x": [
+    0,
+    180,
+    360
+  ],
+  "parallax": {
+    "mapping": "source(u,v) samples scene(u+180+10*b,v+3*b)",
+    "b": "exp(-((u-130)/70)^2-((v-142)/65)^2)"
+  }
+}

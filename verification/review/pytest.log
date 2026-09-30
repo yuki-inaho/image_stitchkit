@@ -1,0 +1,12 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.5, pytest-9.0.2, pluggy-1.6.0
+rootdir: [EPHEMERAL_ROOT]/stitchkit_review
+configfile: pyproject.toml
+plugins: anyio-4.13.0, ddtrace-4.4.0, Faker-40.1.2, asyncio-1.3.0, cov-7.0.0, json-report-1.5.0, metadata-3.1.1, typeguard-4.4.2
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 38 items
+
+python_tests/test_binding.py ......................................      [100%]
+
+- generated xml file: [EPHEMERAL_ROOT]/stitchkit_review/verification/review/pytest.xml -
+============================== 38 passed in 4.39s ==============================

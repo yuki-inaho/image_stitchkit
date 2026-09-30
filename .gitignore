@@ -1,0 +1,12 @@
+/build/
+/.tools/
+/.venv/
+/vcpkg_installed/
+/CMakeUserPresets.json
+/.cache/
+/temp/
+/dist/
+__pycache__/
+.pytest_cache/
+.ipynb_checkpoints/
+*.onnx

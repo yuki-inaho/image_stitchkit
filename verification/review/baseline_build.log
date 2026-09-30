@@ -1,0 +1,24 @@
+[1/24] Building C object CMakeFiles/stitchkit_vlfeat.dir/third_party/vlfeat/vl/sift.c.o
+[2/24] Building C object CMakeFiles/stitchkit_vlfeat.dir/third_party/vlfeat/runtime.c.o
+[3/24] Building C object CMakeFiles/stitchkit_vlfeat.dir/third_party/vlfeat/vl/imopv.c.o
+[4/24] Building CXX object CMakeFiles/stitchkit.dir/src/io.cpp.o
+[5/24] Building C object CMakeFiles/stitchkit.dir/src/jpeg_bridge.c.o
+[6/24] Building CXX object CMakeFiles/stitchkit.dir/src/types.cpp.o
+[7/24] Building CXX object CMakeFiles/stitchkit.dir/src/features.cpp.o
+[8/24] Building CXX object CMakeFiles/stitchkit.dir/src/lineae.cpp.o
+[9/24] Building CXX object CMakeFiles/stitchkit.dir/src/solver.cpp.o
+[10/24] Building CXX object CMakeFiles/stitchkit.dir/src/registration.cpp.o
+[11/24] Building CXX object CMakeFiles/stitchkit.dir/src/mesh_warp.cpp.o
+[12/24] Building CXX object CMakeFiles/stitchkit.dir/src/raster.cpp.o
+[13/24] Building CXX object CMakeFiles/stitchkit.dir/src/structures.cpp.o
+[14/24] Building CXX object CMakeFiles/stitchkit.dir/src/rew.cpp.o
+[15/24] Building CXX object CMakeFiles/stitch.dir/app/main.cpp.o
+[16/24] Building CXX object CMakeFiles/stitchkit.dir/src/stitcher.cpp.o
+[17/24] Linking CXX static library libstitchkit.a
+[18/24] Building CXX object CMakeFiles/stitchkit_example.dir/examples/basic.cpp.o
+[19/24] Building CXX object tests/CMakeFiles/stitchkit_e2e.dir/e2e.cpp.o
+[20/24] Linking CXX executable stitch
+[21/24] Linking CXX executable stitchkit_example
+[22/24] Linking CXX executable tests/stitchkit_e2e
+[23/24] Building CXX object tests/CMakeFiles/stitchkit_tests.dir/test_main.cpp.o
+[24/24] Linking CXX executable tests/stitchkit_tests

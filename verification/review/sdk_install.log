@@ -1,0 +1,16 @@
+-- Install configuration: "Release"
+-- Installing: [EPHEMERAL_ROOT]/stitchkit_sdk_install/lib/libstitchkit.a
+-- Installing: [EPHEMERAL_ROOT]/stitchkit_sdk_install/bin/stitch
+-- Installing: [EPHEMERAL_ROOT]/stitchkit_sdk_install/include
+-- Installing: [EPHEMERAL_ROOT]/stitchkit_sdk_install/include/stitchkit
+-- Installing: [EPHEMERAL_ROOT]/stitchkit_sdk_install/include/stitchkit/lineae.hpp
+-- Installing: [EPHEMERAL_ROOT]/stitchkit_sdk_install/include/stitchkit/types.hpp
+-- Installing: [EPHEMERAL_ROOT]/stitchkit_sdk_install/include/stitchkit/interfaces.hpp
+-- Installing: [EPHEMERAL_ROOT]/stitchkit_sdk_install/include/stitchkit/stitcher.hpp
+-- Installing: [EPHEMERAL_ROOT]/stitchkit_sdk_install/lib/cmake/stitchkit/stitchkitTargets.cmake
+-- Installing: [EPHEMERAL_ROOT]/stitchkit_sdk_install/lib/cmake/stitchkit/stitchkitTargets-release.cmake
+-- Installing: [EPHEMERAL_ROOT]/stitchkit_sdk_install/lib/cmake/stitchkit/stitchkitConfig.cmake
+-- Installing: [EPHEMERAL_ROOT]/stitchkit_sdk_install/lib/cmake/stitchkit/stitchkitConfigVersion.cmake
+-- Installing: [EPHEMERAL_ROOT]/stitchkit_sdk_install/share/stitchkit/licenses/VLFeat-BSD.txt
+-- Installing: [EPHEMERAL_ROOT]/stitchkit_sdk_install/share/stitchkit/licenses/LICENSE
+-- Installing: [EPHEMERAL_ROOT]/stitchkit_sdk_install/share/stitchkit/licenses/THIRD_PARTY_NOTICES.md

@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Linux-clang++"
+	tests="43"
+	failures="0"
+	disabled="0"
+	skipped="2"
+	hostname="[HOST]"
+	time="80"
+	timestamp="2026-09-29T09:49:46"
+	>
+	<testcase name="unit.convolution" classname="unit.convolution" time="0.0104598" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;unit"/>
+		</properties>
+		<system-out>PASS convolution
+</system-out>
+	</testcase>
+	<testcase name="unit.types" classname="unit.types" time="0.0104712" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;unit"/>
+		</properties>
+		<system-out>PASS types
+</system-out>
+	</testcase>
+	<testcase name="unit.mesh" classname="unit.mesh" time="0.0093029" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;unit"/>
+		</properties>
+		<system-out>PASS mesh
+</system-out>
+	</testcase>
+	<testcase name="unit.solver" classname="unit.solver" time="0.0101781" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;unit"/>
+		</properties>
+		<system-out>PASS solver
+</system-out>
+	</testcase>
+	<testcase name="unit.registration" classname="unit.registration" time="0.017186" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;unit"/>
+		</properties>
+		<system-out>PASS registration
+</system-out>
+	</testcase>
+	<testcase name="unit.rew" classname="unit.rew" time="0.0504361" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;unit"/>
+		</properties>
+		<system-out>REW controlled residual: 2.19043 -&gt; 0.108656
+PASS rew
+</system-out>
+	</testcase>
+	<testcase name="unit.geometric_energy" classname="unit.geometric_energy" time="0.423224" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;unit"/>
+		</properties>
+		<system-out>Controlled structure residual sum: NIS=45.8181, GES=0.00165232
+PASS geometric_energy
+</system-out>
+	</testcase>
+	<testcase name="unit.raster" classname="unit.raster" time="0.0144593" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;unit"/>
+		</properties>
+		<system-out>PASS raster
+</system-out>
+	</testcase>
+	<testcase name="unit.io" classname="unit.io" time="0.0518967" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;unit"/>
+		</properties>
+		<system-out>Premature end of JPEG file
+PASS io
+</system-out>
+	</testcase>
+	<testcase name="unit.edges" classname="unit.edges" time="0.0250564" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;unit"/>
+		</properties>
+		<system-out>PASS edges
+</system-out>
+	</testcase>
+	<testcase name="unit.lineae_contract" classname="unit.lineae_contract" time="0.00948237" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;unit"/>
+		</properties>
+		<system-out>PASS lineae_contract
+</system-out>
+	</testcase>
+	<testcase name="unit.device_contract" classname="unit.device_contract" time="0.00952909" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;unit"/>
+		</properties>
+		<system-out>PASS device_contract
+</system-out>
+	</testcase>
+	<testcase name="unit.failures" classname="unit.failures" time="0.173171" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;unit"/>
+		</properties>
+		<system-out>PASS failures
+</system-out>
+	</testcase>
+	<testcase name="optional.cuda_parity" classname="optional.cuda_parity" time="0.00898638" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties>
+			<property name="cmake_labels" value="optional"/>
+		</properties>
+		<system-out>SKIP: no usable CUDA renderer/device
+</system-out>
+	</testcase>
+	<testcase name="optional.lineae_model" classname="optional.lineae_model" time="0.00861509" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties>
+			<property name="cmake_labels" value="optional"/>
+		</properties>
+		<system-out>SKIP: ONNX Runtime/model/variant not configured
+</system-out>
+	</testcase>
+	<testcase name="e2e.rew.translation" classname="e2e.rew.translation" time="0.778939" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;e2e"/>
+		</properties>
+		<system-out>RGB RMSE=2.15623, coverage=157276
+PASS translation_rew size=583x284 matches=141 alignment_rmse=0.0878791
+</system-out>
+	</testcase>
+	<testcase name="e2e.rew.chain" classname="e2e.rew.chain" time="1.38117" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;e2e"/>
+		</properties>
+		<system-out>RGB RMSE=4.2152, coverage=206596
+PASS chain_rew size=763x284 matches=320 alignment_rmse=0.148156
+</system-out>
+	</testcase>
+	<testcase name="e2e.rew.parallax" classname="e2e.rew.parallax" time="0.850893" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;e2e"/>
+		</properties>
+		<system-out>PASS parallax_rew size=602x301 matches=115 alignment_rmse=0.998684
+</system-out>
+	</testcase>
+	<testcase name="e2e.rew.library" classname="e2e.rew.library" time="2.3845" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;e2e"/>
+		</properties>
+		<system-out>PASS library_rew size=1425x722 matches=51 alignment_rmse=5.95339
+</system-out>
+	</testcase>
+	<testcase name="e2e.rew.town_hall" classname="e2e.rew.town_hall" time="1.92466" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;e2e"/>
+		</properties>
+		<system-out>PASS town_hall_rew size=1095x456 matches=12 alignment_rmse=0.630425
+</system-out>
+	</testcase>
+	<testcase name="e2e.rew.ship" classname="e2e.rew.ship" time="1.36381" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;e2e"/>
+		</properties>
+		<system-out>PASS ship_rew size=996x523 matches=58 alignment_rmse=2.53265
+</system-out>
+	</testcase>
+	<testcase name="e2e.niswgsp.translation" classname="e2e.niswgsp.translation" time="2.49304" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;e2e"/>
+		</properties>
+		<system-out>RGB RMSE=1.70202, coverage=157276
+PASS translation_niswgsp size=582x282 matches=141 alignment_rmse=0.0585264
+</system-out>
+	</testcase>
+	<testcase name="e2e.niswgsp.chain" classname="e2e.niswgsp.chain" time="5.54839" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;e2e"/>
+		</properties>
+		<system-out>RGB RMSE=1.26045, coverage=206596
+PASS chain_niswgsp size=761x282 matches=320 alignment_rmse=0.102642
+</system-out>
+	</testcase>
+	<testcase name="e2e.niswgsp.parallax" classname="e2e.niswgsp.parallax" time="2.39476" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;e2e"/>
+		</properties>
+		<system-out>PASS parallax_niswgsp size=581x282 matches=115 alignment_rmse=0.414009
+</system-out>
+	</testcase>
+	<testcase name="e2e.niswgsp.library" classname="e2e.niswgsp.library" time="14.0401" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;e2e"/>
+		</properties>
+		<system-out>PASS library_niswgsp size=1003x462 matches=51 alignment_rmse=1.49911
+</system-out>
+	</testcase>
+	<testcase name="e2e.niswgsp.town_hall" classname="e2e.niswgsp.town_hall" time="10.556" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;e2e"/>
+		</properties>
+		<system-out>PASS town_hall_niswgsp size=987x421 matches=12 alignment_rmse=0.74762
+</system-out>
+	</testcase>
+	<testcase name="e2e.niswgsp.ship" classname="e2e.niswgsp.ship" time="12.9715" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;e2e"/>
+		</properties>
+		<system-out>PASS ship_niswgsp size=719x404 matches=58 alignment_rmse=1.91801
+</system-out>
+	</testcase>
+	<testcase name="e2e.gesgsp.translation" classname="e2e.gesgsp.translation" time="5.69414" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;e2e"/>
+		</properties>
+		<system-out>RGB RMSE=1.00827, coverage=157276
+PASS translation_gesgsp size=582x282 matches=141 alignment_rmse=0.0695513
+</system-out>
+	</testcase>
+	<testcase name="e2e.gesgsp.chain" classname="e2e.gesgsp.chain" time="14.6085" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;e2e"/>
+		</properties>
+		<system-out>RGB RMSE=1.13667, coverage=206596
+PASS chain_gesgsp size=761x282 matches=320 alignment_rmse=0.127785
+</system-out>
+	</testcase>
+	<testcase name="e2e.gesgsp.parallax" classname="e2e.gesgsp.parallax" time="5.26605" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;e2e"/>
+		</properties>
+		<system-out>PASS parallax_gesgsp size=579x281 matches=115 alignment_rmse=0.937453
+</system-out>
+	</testcase>
+	<testcase name="e2e.gesgsp.library" classname="e2e.gesgsp.library" time="26.301" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;e2e"/>
+		</properties>
+		<system-out>PASS library_gesgsp size=995x463 matches=51 alignment_rmse=2.63632
+</system-out>
+	</testcase>
+	<testcase name="e2e.gesgsp.town_hall" classname="e2e.gesgsp.town_hall" time="19.2151" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;e2e"/>
+		</properties>
+		<system-out>PASS town_hall_gesgsp size=985x418 matches=12 alignment_rmse=0.95669
+</system-out>
+	</testcase>
+	<testcase name="e2e.gesgsp.ship" classname="e2e.gesgsp.ship" time="17.5579" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;e2e"/>
+		</properties>
+		<system-out>PASS ship_gesgsp size=667x389 matches=58 alignment_rmse=3.36967
+</system-out>
+	</testcase>
+	<testcase name="e2e.cli" classname="e2e.cli" time="4.94049" status="run">
+		<properties>
+			<property name="cmake_labels" value="cli;e2e"/>
+		</properties>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="assets.integrity" classname="assets.integrity" time="0.0127479" status="run">
+		<properties>
+			<property name="cmake_labels" value="assets"/>
+		</properties>
+		<system-out>-- Verified 13 committed assets
+</system-out>
+	</testcase>
+	<testcase name="regression.atomic_row" classname="regression.atomic_row" time="0.00875419" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;regression"/>
+		</properties>
+		<system-out>PASS atomic_row
+</system-out>
+	</testcase>
+	<testcase name="regression.weighted_overflow" classname="regression.weighted_overflow" time="0.00913999" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;regression"/>
+		</properties>
+		<system-out>PASS weighted_overflow
+</system-out>
+	</testcase>
+	<testcase name="regression.mesh_bounds" classname="regression.mesh_bounds" time="0.00839786" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;regression"/>
+		</properties>
+		<system-out>PASS mesh_bounds
+</system-out>
+	</testcase>
+	<testcase name="regression.renderer_enum" classname="regression.renderer_enum" time="0.00731535" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;regression"/>
+		</properties>
+		<system-out>PASS renderer_enum
+</system-out>
+	</testcase>
+	<testcase name="regression.report_locale" classname="regression.report_locale" time="0.00898704" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;regression"/>
+		</properties>
+		<system-out>PASS report_locale
+</system-out>
+	</testcase>
+	<testcase name="regression.prepared_scene" classname="regression.prepared_scene" time="0.709522" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;regression"/>
+		</properties>
+		<system-out>PASS prepared_scene
+</system-out>
+	</testcase>
+	<testcase name="regression.batch_features" classname="regression.batch_features" time="0.789042" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;regression"/>
+		</properties>
+		<system-out>PASS batch_features
+</system-out>
+	</testcase>
+	<testcase name="regression.injection" classname="regression.injection" time="0.0280872" status="run">
+		<properties>
+			<property name="cmake_labels" value="cpu;regression"/>
+		</properties>
+		<system-out>PASS injection
+</system-out>
+	</testcase>
+</testsuite>

@@ -1,0 +1,6 @@
+Resolved 1 package in 1ms
+Prepared 1 package in 4ms
+Uninstalled 1 package in 0.32ms
+Installed 1 package in 0.53ms
+ - stitchkit==0.2.0 (from file://[EPHEMERAL_ROOT]/stitchkit_review)
+ + stitchkit==0.2.0 (from file://[EPHEMERAL_ROOT]/stitchkit_review/dist/stitchkit-0.2.0-cp313-cp313-linux_x86_64.whl)

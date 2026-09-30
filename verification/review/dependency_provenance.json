@@ -1,0 +1,20 @@
+{
+  "nanobind": {
+    "version": "2.15.0",
+    "repository": "msys2/MINGW-packages",
+    "pull_request": 31091,
+    "run_id": 32093913320,
+    "artifact_id": 9309352536,
+    "artifact_sha256": "f0ad99b88c1af61deca646602f1fb9300e05d224a4e74da7d0c1ab9377e845c1",
+    "upstream_record_verified_files": 89,
+    "repacked_wheel_sha256": "27fc425e87ce751135c2ec06a4f4f01baf53ea9d9465ed9b6f4dd65892c01458",
+    "note": "Portable source files extracted from MSYS2 distribution; no Windows binaries used. Repacked RECORD excludes Python 3.14 bytecode. This is not a PyPI wheel download."
+  },
+  "scikit-build-core": {
+    "version": "1.1.0",
+    "repository": "scikit-build/scikit-build-core",
+    "run_id": 36185531969,
+    "artifact_id": 10885653677,
+    "artifact_sha256": "37c0da2f30bc4804bfe85aa971c7a3f7fffef541beada82704df6b1579034279"
+  }
+}

@@ -1,0 +1,4 @@
+[EPHEMERAL_ROOT]/stitchkit_wheel_env/lib/python3.13/site-packages/stitchkit/__init__.py
+[EPHEMERAL_ROOT]/stitchkit_wheel_env/lib/python3.13/site-packages/stitchkit/_native.cpython-313-x86_64-linux-gnu.so
+{'version': '0.2.0', 'cxx_compiler': 'GNU 14.2.0', 'configuration': 'Release', 'nanobind': '2.15.0', 'cuda_compiled': False, 'cuda_available': False, 'lineae_compiled': False, 'gpu_scope': 'sampling and compositing only'}
+license files: ['LICENSE', 'THIRD_PARTY_NOTICES.md', 'VLFeat-BSD.txt', 'nanobind-BSD.txt', 'robin-map-MIT.txt']
